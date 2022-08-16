@@ -26,7 +26,7 @@
 #define APP_VERSION   "0.1"
 #define APP_DOMAIN    "pool.aterx.com"
 #define APP_SITE      "pool.aterx.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2022 xmrig.com Copyright (C) 2022 aterx.com"
+#define APP_COPYRIGHT "Copyright (C) 2016-2025 xmrig.com Copyright (C) 2022-2025 aterx.com"
 #define APP_KIND      "pool"
 
 #define APP_VER_MAJOR  0
