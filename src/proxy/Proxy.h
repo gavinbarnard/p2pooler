@@ -54,6 +54,7 @@ class Server;
 class ShareLog;
 class TlsContext;
 class Workers;
+class Recorder;
 
 
 class Proxy : public IBaseListener, public ITimerListener
@@ -102,6 +103,7 @@ private:
     ProxyDebug *m_debug;
     ShareLog *m_shareLog;
     Stats *m_stats;
+    Recorder *m_recorder;
     std::vector<Server*> m_servers;
     Timer *m_timer      = nullptr;
     TlsContext *m_tls   = nullptr;

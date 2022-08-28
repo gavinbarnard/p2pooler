@@ -54,6 +54,7 @@
 #include "proxy/splitters/simple/SimpleSplitter.h"
 #include "proxy/Stats.h"
 #include "proxy/workers/Workers.h"
+#include "proxy/Recorder.h"
 
 
 #ifdef XMRIG_FEATURE_TLS
@@ -90,11 +91,12 @@ xmrig::Proxy::Proxy(Controller *controller) :
     }
 
     m_splitter  = splitter;
-    m_donate    = new DonateSplitter(controller);
+    //m_donate    = new DonateSplitter(controller);
     m_stats     = new Stats(controller);
     m_shareLog  = new ShareLog(controller, m_stats);
     m_accessLog = new AccessLog(controller);
     m_workers   = new Workers(controller);
+    m_recorder  = new Recorder(controller, m_stats);
 
     m_timer = new Timer(this);
 
@@ -114,14 +116,14 @@ xmrig::Proxy::Proxy(Controller *controller) :
     Events::subscribe(IEvent::CloseType, m_workers);
 
     Events::subscribe(IEvent::LoginType, m_login);
-    Events::subscribe(IEvent::LoginType, m_donate);
+    //Events::subscribe(IEvent::LoginType, m_donate);
     Events::subscribe(IEvent::LoginType, &m_customDiff);
     Events::subscribe(IEvent::LoginType, splitter);
     Events::subscribe(IEvent::LoginType, m_stats);
     Events::subscribe(IEvent::LoginType, m_accessLog);
     Events::subscribe(IEvent::LoginType, m_workers);
 
-    Events::subscribe(IEvent::SubmitType, m_donate);
+    //Events::subscribe(IEvent::SubmitType, m_donate);
     Events::subscribe(IEvent::SubmitType, splitter);
     Events::subscribe(IEvent::SubmitType, m_stats);
     Events::subscribe(IEvent::SubmitType, m_workers);
@@ -129,6 +131,7 @@ xmrig::Proxy::Proxy(Controller *controller) :
     Events::subscribe(IEvent::AcceptType, m_stats);
     Events::subscribe(IEvent::AcceptType, m_shareLog);
     Events::subscribe(IEvent::AcceptType, m_workers);
+    Events::subscribe(IEvent::AcceptType, m_recorder);
 
     m_debug = new ProxyDebug(controller->config()->isDebug());
 

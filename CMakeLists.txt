@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.12)
-project(xmrig-proxy)
+project(p2pooler)
 
 
 option(WITH_GOOGLE_BREAKPAD "Use Google Breakpad"     OFF)
@@ -46,6 +46,7 @@ set(HEADERS
     src/proxy/Login.h
     src/proxy/Miner.h
     src/proxy/Miners.h
+    src/proxy/Recorder.h
     src/proxy/Proxy.h
     src/proxy/ProxyDebug.h
     src/proxy/Server.h
@@ -93,6 +94,7 @@ set(SOURCES
     src/proxy/Miners.cpp
     src/proxy/Proxy.cpp
     src/proxy/ProxyDebug.cpp
+    src/proxy/Recorder.cpp
     src/proxy/Server.cpp
     src/proxy/splitters/donate/DonateMapper.cpp
     src/proxy/splitters/donate/DonateSplitter.cpp
