@@ -109,7 +109,7 @@ xmrig::Proxy::Proxy(Controller *controller) :
     Events::subscribe(IEvent::ConnectionType, m_stats);
 
     Events::subscribe(IEvent::CloseType, m_miners);
-    Events::subscribe(IEvent::CloseType, m_donate);
+    //Events::subscribe(IEvent::CloseType, m_donate);
     Events::subscribe(IEvent::CloseType, splitter);
     Events::subscribe(IEvent::CloseType, m_stats);
     Events::subscribe(IEvent::CloseType, m_accessLog);
