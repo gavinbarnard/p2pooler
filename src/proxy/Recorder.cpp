@@ -31,16 +31,23 @@
 #include "core/Controller.h"
 #include "proxy/events/AcceptEvent.h"
 #include "proxy/Miner.h"
-#include "proxy/Stats.h"
-
+#include "base/tools/Chrono.h"
 
 #include <cinttypes>
 
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
 
-xmrig::Recorder::Recorder(Controller *controller, Stats *stats) :
-    m_stats(stats),
+xmrig::Recorder::Recorder(Controller *controller) :
     m_controller(controller)
 {
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        LOG_ERR("sockfd less than 0 %d", sockfd);
+    } 
 }
 
 
@@ -77,21 +84,35 @@ void xmrig::Recorder::onRejectedEvent(IEvent *event)
 
 void xmrig::Recorder::accept(const AcceptEvent *event)
 {
-    if (!m_controller->config()->isVerbose() || event->isDonate() || event->isCustomDiff()) {
+    if (event->isDonate() || event->isCustomDiff()) {
         return;
     }
-    LOG_INFO("RECORDER WOOTWOOT");
-    //LOG_INFO("%s " CYAN("%04u ") GREEN_BOLD("accepted") " (%" PRId64 "/%" PRId64 "+%" PRId64 ") diff " WHITE_BOLD("%" PRIu64) " ip " WHITE_BOLD("%s") " " BLACK_BOLD("(%" PRIu64 " ms)"),
-    //         Tags::proxy(), event->mapperId(), m_stats->data().accepted, m_stats->data().rejected, m_stats->data().invalid, event->result.diff, event->ip(), event->result.elapsed);
+    const char* user = event->miner()->user();
+    const u_int64_t timestamp = Chrono::currentMSecsSinceEpoch();
+    const u_int64_t diff = event->result.diff;
+    LOG_PPLNS("user=%s,ts=%" PRIu64",diff=%" PRIu64, (char*)user, timestamp, diff);
+    struct hostent *server;
+    int portno = 6969;
+    struct sockaddr_in serv_addr;
+    server = gethostbyname("localhost");
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy((char *)server->h_addr, 
+    (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+    serv_addr.sin_port = htons(portno);
+    if (sockfd < 0) {
+        LOG_ERR("sockfd is dead %d", sockfd);
+    } else {
+        char message[1024] = {0};
+        sprintf(message,"{\"user\":\"%s\",\"ts\": %" PRIu64", \"diff\": %" PRIu64"}", (char*)user, timestamp, diff);
+        sendto(sockfd, message, strlen(message), 0, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+    }
 }
-
 
 void xmrig::Recorder::reject(const AcceptEvent *event)
 {
     if (event->isDonate()) {
         return;
     }
-
-    //LOG_INFO("%s " CYAN("%04u ") RED_BOLD("rejected") " (%" PRId64 "/%" PRId64 "+%" PRId64 ") diff " WHITE_BOLD("%" PRIu64) " ip " WHITE_BOLD("%s") " " RED("\"%s\"") " " BLACK_BOLD("(%" PRIu64 " ms)"),
-    //         Tags::proxy(), event->mapperId(), m_stats->data().accepted, m_stats->data().rejected, m_stats->data().invalid, event->result.diff, event->ip(), event->error(), event->result.elapsed);
+    // should we penalize users for bad shares ?~
 }

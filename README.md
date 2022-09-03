@@ -1,3 +1,30 @@
+# p2pooler - a pool on top of p2pool
+
+A hack of xmrig-proxy to record a pplns trail.
+
+## Why ?
+
+Because I wanted to leech off p2pool block consistency but still run a pool
+
+## Compatibility
+
+This fork will be updated with xmrig-proxy updates
+Tested against p2pool/xmrig/monerod and no other coins or miners
+
+## Download
+
+* none available currently
+
+## Usage
+
+* TODO
+* See original Usage section below
+
+## Donations: 
+* XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
+
+# Original XMRig Proxy readme
+
 # XMRig Proxy
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig-proxy/total.svg)](https://github.com/xmrig/xmrig-proxy/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig-proxy/all.svg)](https://github.com/xmrig/xmrig-proxy/releases)
@@ -102,7 +129,10 @@ Default donation fee is 2% can be reduced to 1% or disabled via `donate-level` o
 
 * XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
 
-## Contacts
-* support@xmrig.com
+## Contacts 
+
+Do not contact these addresses for support with p2pooler
+
+* support@xmrig.com 
 * [reddit](https://www.reddit.com/user/XMRig/)
 * [twitter](https://twitter.com/xmrig_dev)

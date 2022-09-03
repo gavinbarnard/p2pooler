@@ -30,13 +30,11 @@
 #include "base/tools/Object.h"
 #include "proxy/interfaces/IEventListener.h"
 
-
 namespace xmrig {
 
 
 class AcceptEvent;
 class Controller;
-class Stats;
 
 
 class Recorder : public IEventListener
@@ -44,7 +42,7 @@ class Recorder : public IEventListener
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(Recorder)
 
-    Recorder(Controller *controller, Stats *stats);
+    Recorder(Controller *controller);
     ~Recorder() override;
 
 protected:
@@ -55,8 +53,8 @@ private:
     void accept(const AcceptEvent *event);
     void reject(const AcceptEvent *event);
 
-    Stats *m_stats;
     Controller *m_controller;
+    int sockfd;
 };
 
 

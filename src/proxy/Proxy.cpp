@@ -1,4 +1,4 @@
-/* XMRig
+/* XMRig / p2pooler
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2022      grb         <https://github.com/gavinbarnard>, p2pooler
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -91,12 +92,12 @@ xmrig::Proxy::Proxy(Controller *controller) :
     }
 
     m_splitter  = splitter;
-    //m_donate    = new DonateSplitter(controller);
+    m_donate    = new DonateSplitter(controller);
     m_stats     = new Stats(controller);
     m_shareLog  = new ShareLog(controller, m_stats);
     m_accessLog = new AccessLog(controller);
     m_workers   = new Workers(controller);
-    m_recorder  = new Recorder(controller, m_stats);
+    m_recorder  = new Recorder(controller);
 
     m_timer = new Timer(this);
 
@@ -109,21 +110,21 @@ xmrig::Proxy::Proxy(Controller *controller) :
     Events::subscribe(IEvent::ConnectionType, m_stats);
 
     Events::subscribe(IEvent::CloseType, m_miners);
-    //Events::subscribe(IEvent::CloseType, m_donate);
+    Events::subscribe(IEvent::CloseType, m_donate);
     Events::subscribe(IEvent::CloseType, splitter);
     Events::subscribe(IEvent::CloseType, m_stats);
     Events::subscribe(IEvent::CloseType, m_accessLog);
     Events::subscribe(IEvent::CloseType, m_workers);
 
     Events::subscribe(IEvent::LoginType, m_login);
-    //Events::subscribe(IEvent::LoginType, m_donate);
+    Events::subscribe(IEvent::LoginType, m_donate);
     Events::subscribe(IEvent::LoginType, &m_customDiff);
     Events::subscribe(IEvent::LoginType, splitter);
     Events::subscribe(IEvent::LoginType, m_stats);
     Events::subscribe(IEvent::LoginType, m_accessLog);
     Events::subscribe(IEvent::LoginType, m_workers);
 
-    //Events::subscribe(IEvent::SubmitType, m_donate);
+    Events::subscribe(IEvent::SubmitType, m_donate);
     Events::subscribe(IEvent::SubmitType, splitter);
     Events::subscribe(IEvent::SubmitType, m_stats);
     Events::subscribe(IEvent::SubmitType, m_workers);
@@ -162,6 +163,7 @@ xmrig::Proxy::~Proxy()
     delete m_accessLog;
     delete m_debug;
     delete m_workers;
+    delete m_recorder;
 
 #   ifdef XMRIG_FEATURE_TLS
     delete m_tls;

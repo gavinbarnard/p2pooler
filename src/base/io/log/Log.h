@@ -37,6 +37,7 @@ class Log
 public:
     enum Level : int {
         NONE = -1,
+        PPLNS = -2,
         EMERG,   // system is unusable
         ALERT,   // action must be taken immediately
         CRIT,    // critical conditions
@@ -143,6 +144,7 @@ private:
 #define LOG_WARN(x, ...)    xmrig::Log::print(xmrig::Log::WARNING, x, ##__VA_ARGS__)
 #define LOG_NOTICE(x, ...)  xmrig::Log::print(xmrig::Log::NOTICE,  x, ##__VA_ARGS__)
 #define LOG_INFO(x, ...)    xmrig::Log::print(xmrig::Log::INFO,    x, ##__VA_ARGS__)
+#define LOG_PPLNS(x,...)    xmrig::Log::print(xmrig::Log::PPLNS,   x, ##__VA_ARGS__)
 #define LOG_VERBOSE(x, ...) if (xmrig::Log::verbose() > 0) { xmrig::Log::print(xmrig::Log::INFO, x, ##__VA_ARGS__); }
 #define LOG_V1(x, ...)      if (xmrig::Log::verbose() > 0) { xmrig::Log::print(xmrig::Log::INFO, x, ##__VA_ARGS__); }
 #define LOG_V2(x, ...)      if (xmrig::Log::verbose() > 1) { xmrig::Log::print(xmrig::Log::INFO, x, ##__VA_ARGS__); }
