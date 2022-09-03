@@ -92,7 +92,7 @@ xmrig::Proxy::Proxy(Controller *controller) :
     }
 
     m_splitter  = splitter;
-    //m_donate    = new DonateSplitter(controller);
+    m_donate    = new DonateSplitter(controller);
     m_stats     = new Stats(controller);
     m_shareLog  = new ShareLog(controller, m_stats);
     m_accessLog = new AccessLog(controller);
@@ -117,14 +117,14 @@ xmrig::Proxy::Proxy(Controller *controller) :
     Events::subscribe(IEvent::CloseType, m_workers);
 
     Events::subscribe(IEvent::LoginType, m_login);
-    //Events::subscribe(IEvent::LoginType, m_donate);
+    Events::subscribe(IEvent::LoginType, m_donate);
     Events::subscribe(IEvent::LoginType, &m_customDiff);
     Events::subscribe(IEvent::LoginType, splitter);
     Events::subscribe(IEvent::LoginType, m_stats);
     Events::subscribe(IEvent::LoginType, m_accessLog);
     Events::subscribe(IEvent::LoginType, m_workers);
 
-    //Events::subscribe(IEvent::SubmitType, m_donate);
+    Events::subscribe(IEvent::SubmitType, m_donate);
     Events::subscribe(IEvent::SubmitType, splitter);
     Events::subscribe(IEvent::SubmitType, m_stats);
     Events::subscribe(IEvent::SubmitType, m_workers);

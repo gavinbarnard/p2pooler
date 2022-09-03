@@ -32,7 +32,10 @@
 #include "proxy/events/AcceptEvent.h"
 #include "proxy/Miner.h"
 #include "base/tools/Chrono.h"
+<<<<<<< HEAD
 #include <hiredis/hiredis.h>
+=======
+>>>>>>> 786c97d (many things completed)
 
 #include <cinttypes>
 
@@ -41,12 +44,16 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+<<<<<<< HEAD
 #include <cstring>
 #include <string>
+=======
+>>>>>>> 786c97d (many things completed)
 
 xmrig::Recorder::Recorder(Controller *controller) :
     m_controller(controller)
 {
+<<<<<<< HEAD
     //sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     //if (sockfd < 0) {
     //    LOG_ERR("sockfd less than 0 %d", sockfd);
@@ -61,6 +68,12 @@ xmrig::Recorder::Recorder(Controller *controller) :
             LOG_ERR("Redis connection error: Can't allocate redis context.");
         }
     }
+=======
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        LOG_ERR("sockfd less than 0 %d", sockfd);
+    } 
+>>>>>>> 786c97d (many things completed)
 }
 
 
