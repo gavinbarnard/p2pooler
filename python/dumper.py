@@ -10,7 +10,7 @@ def main():
     resp = r.keys("s_*")
     for key in resp:
         dk = r.json().get(key)
-        dump_me.append({key: dk})
+        dump_me.append({str(key, 'utf-8'): dk})
     with open("dump.json", 'w') as fh:
         fh.write(json.dumps(dump_me, indent=True))
 
