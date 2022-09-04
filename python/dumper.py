@@ -12,7 +12,7 @@ def main():
         dk = r.json().get(key)
         dump_me.append({key: dk})
     with open("dump.json", 'w') as fh:
-        fh.write(json.dumps(dk, indent=True))
+        fh.write(json.dumps(dump_me, indent=True))
 
 if __name__ == "__main__":
     main()
