@@ -60,6 +60,7 @@ def get_stats(wallet=None):
     miner_bal = 0
     worker_count = 0
     miner_share = 0
+    connected_miners = len(get_miners(config_items['p2pooler_rpc'], config_items['p2pooler_token']))
     if wallet:
         miners = get_miners(config_items['p2pooler_rpc'],config_items['p2pooler_token'])
         if wallet in miners.keys():
@@ -83,7 +84,7 @@ def get_stats(wallet=None):
         "pool_fee": 0,
         "pool_port": 4242,
         "pool_ssl_port": 4244,
-        "connected_miners": p2pooler_sum['miners']['now'],
+        "connected_miners": connected_miners,
         "miner_hashrate": miner_hr,
         "miner_balance": miner_bal,
         "miner_share": miner_share,
@@ -98,9 +99,13 @@ def get_mined():
         if tx['type'] == "block":
             mblock = monerod_get_block(config_items['monero_rpc'], tx['height'], config_items['monero_ip'])
             bh = mblock['block_header']
+            if tx['locked']:
+                status = "LOCKED"
+            else:
+                status = "UNLOCKED"
             mined_blocks.append({"height": tx['height'],
                     "hash": bh['miner_tx_hash'],
-                    "status": "UNLOCKED",
+                    "status": status,
                     "difficulty": bh['difficulty'],
                     "breward": bh['reward'],
                     "reward": tx['amount'],
@@ -179,6 +184,7 @@ def json_graph_stats():
     stat_array = []
     highest_p = 0
     highest_n = 0
+    highest_p2r = 0
     lowest_p = -1   
     files = get_files(config_items['stats_dir'] + "/*.json")
     unused_var_zero, block_json = json_blocks_all_response()
@@ -200,6 +206,8 @@ def json_graph_stats():
     for my_item in sorted_keys:
         p_sum += stat_data[my_item]['pr']
         p += 1
+        if stat_data[my_item]['p2r'] > highest_p2r:
+            highest_p2r = stat_data[my_item]['p2r']
         if stat_data[my_item]['nr'] > highest_n:
             highest_n = stat_data[my_item]['nr']
         if stat_data[my_item]['pr'] > highest_p:
@@ -210,8 +218,8 @@ def json_graph_stats():
         p_avg = floor(p_sum / p)
     else:
         p_avg = 0
-    if highest_n != 0:
-        pp = highest_p / highest_n
+    if highest_p2r != 0:
+        pp = highest_p / highest_p2r
     else:
         pp = 0
     if highest_p != 0: 
@@ -222,7 +230,7 @@ def json_graph_stats():
     for my_item in sorted_keys:
         percentile = 0
         # the graph draws upside down so we invert the numbers
-        percentile = abs(floor(stat_data[my_item]['nr'] / highest_n * 150) - 150)
+        percentile = abs(floor(stat_data[my_item]['p2r'] / highest_p2r * 150) - 150)
         stat_data[my_item]['nrp'] = percentile
         percentile = 0
         if highest_p != 0:
@@ -239,6 +247,7 @@ def json_graph_stats():
 
         stat_array.append(
                 { 'nr':  stat_data[my_item]['nr'],
+                  'p2r': stat_data[my_item]['p2r'],
                   'pr':  stat_data[my_item]['pr'],
                   'nrp': stat_data[my_item]['nrp'],
                   'prp': stat_data[my_item]['prp'],
@@ -254,10 +263,11 @@ def json_get_multi():
     response['multi'] = 0
     #pool_stats = moneropool_get_stats(config_items['site_ip'])
     #FIX ME
-    pool_stats = {}
-    pool_stats['pool_hashrate'] = 0
-    pool_stats['network_hashrate'] = 0
-    pp = pool_stats['pool_hashrate'] / pool_stats['network_hashrate']
+    unused_var, pool_stats = get_stats()
+    pool_stats = json.loads(pool_stats)
+    #pool_stats['pool_hashrate'] = 0
+    #pool_stats['network_hashrate'] = 0
+    pp = pool_stats['pool_hashrate'] / pool_stats['p2pool_hashrate']
     for i in range(0,20):
         multi = 10**i
         if multi * pp > 1:
@@ -323,6 +333,7 @@ def read_files(files):
         temp =  json.loads(data)
         response[ts] = {}
         response[ts]['pr'] = temp['pool_hashrate']
+        response[ts]['p2r'] = temp['p2pool_hashrate']
         response[ts]['nr'] = temp['network_hashrate']
         response[ts]['nd'] = temp['network_difficulty']
     return response
@@ -405,6 +416,8 @@ def application(environ, start_response):
                     body = ""
             elif "{}stats".format(VERSION_PREFIX) == request_uri:
                 contype, body = get_stats(wa)
+            elif "{}multi".format(VERSION_PREFIX) == request_uri:
+                contype, body = json_get_multi()
             elif "{}blocks.all".format(VERSION_PREFIX) == request_uri:
                 contype, body = json_blocks_all_response()
             elif "{}blocks.all.really".format(VERSION_PREFIX) == request_uri:

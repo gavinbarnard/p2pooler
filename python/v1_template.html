@@ -110,7 +110,7 @@
 		    </tr>
         </table>
 	<div>Connected Rigs: </div><div id="rig_list"></div><br/>
-	<small><a target="_blank" class="alight" href="https://github.com/jtgrassie/monero-pool">https://github.com/jtgrassie/monero-pool</a></small><br/>
+	<small><a target="_blank" class="alight" href="https://discord.gg/kTH5a93CMQ">Please join the pool discord</a></br>
 	<small><a target="_blank" class="alight" href="https://www.reddit.com/r/pool_aterx_com">Pool subreddit</a></small><br/>
 	<small onClick="toggleDark()">Toggle dark mode</small></br></br>
 
@@ -118,8 +118,10 @@
 		<canvas id="shittygraph" width="900" height="150" onmousemove="poolstats(event);" onmouseleave="hidepoolstats();"></canvas>
 	</div>
 	<div id="shittygraph_marquee">
-		<font color="#FF0000">Network HR</font>&nbsp;<font color="#00FF00">Pool HR</font>&nbsp;<font color="#FFA500">Averaged Pool HR:&nbsp;<span id='poolavg'></span></font><br/>
+		<font color="#FF0000">P2Pool HR</font>&nbsp;<font color="#00FF00">Pool HR</font>&nbsp;<font color="#FFA500">Averaged Pool HR:&nbsp;<span id='poolavg'></span></font><br/>
 	<span>Sample rate is once a minute, and includes the last 900 entries.<span><br/>
+	<div id="block_count">
+	</div>
 	</div>
     <br/><br/>
 	<table><tr>
@@ -139,7 +141,7 @@
 		<font color=red>!! Weekly maintenance and server restarts will begin every Sunday@11pm ET(UTC -5:00 / -4:00) - !!</font></header></br>
 	</br>
     </br>
-	<div id="poolfee">There are no more pool fees, pool admins bite the tx fees</div>
+	<div id="poolfee">There are no more pool fees, pool admins bite the tx fees.  The power of donation rests in you.</div>
 	</div>
 	<div id="howto">
 	<h4>Get a monero wallet</h4>
@@ -213,8 +215,8 @@ xmlhttp_payments.onreadystatechange = function()
 xmlhttp.onreadystatechange = function()
 {
 	if (this.readyState == 4 && this.status ==200){
-//		graph_data = JSON.parse(this.responseText);
-//		updateGraph(graph_data);
+		graph_data = JSON.parse(this.responseText);
+		updateGraph(graph_data);
 	}
 }
 xmlhttp_rig.onreadystatechange = function()
@@ -360,11 +362,6 @@ function updateGraph(graph_data)
 		ctx.fillRect(n,graph_data[n]['prp'],1,1);
 		ctx.fillStyle = "#FF0000";
 		ctx.fillRect(n,graph_data[n]['nrp'],1,1);
-		if (pplns < graph_data[n]['ts'])
-		{
-			ctx.fillStyle = "#009696";
-			ctx.fillRect(n, 148, 1,1);
-		}
 		if (graph_data[n]['block'] != null)
 		{
 			if (graph_data[n]['block']['hash_match'])
@@ -428,7 +425,7 @@ function poolstats(e)
 	gts = document.getElementById("graph_dt");
 	var rect = e.target.getBoundingClientRect();
 	stat_lookup = e.clientX - rect.left;
-	gnr.innerHTML = format_hashrate(graph_data[stat_lookup]['nr']);
+	gnr.innerHTML = format_hashrate(graph_data[stat_lookup]['p2r']);
 	gpr.innerHTML = format_hashrate(graph_data[stat_lookup]['pr']);
 	d = new Date(graph_data[stat_lookup]['ts']*1000);
 	gts.innerHTML = d.toGMTString();
@@ -613,7 +610,7 @@ if (jar.dark_mode && (jar.dark_mode == 0 || jar.dark_mode == 1))
 };
 </script>
 	<div class="poolstate" id="poolstate" style="opacity: 0.0;">
-	<table class="poolstate"><tr><td><font color="#FF0000">NR:</font></td><td class="poolstate" id='graph_nr'></td></tr>
+	<table class="poolstate"><tr><td><font color="#FF0000">P2HR:</font></td><td class="poolstate" id='graph_nr'></td></tr>
 	<tr><td class="poolstate"><font color="#00FF00">PR:</font></td><td class="poolstate" id='graph_pr'></td></tr>
 	<tr><td class="poolstate">Time:</td><td class="poolstate" id="graph_dt"></td></tr>
 	<tr><td class="poolstate">Block:</td><td class="poolstate" id="block_data"></td></tr>
