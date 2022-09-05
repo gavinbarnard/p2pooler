@@ -398,7 +398,7 @@ def application(environ, start_response):
         usecache = False
     contype = "text/plain"
     nothing = False
-    
+    usecache = False 
     # non parallel friendly! only let one thread do this at a time
     # this will update the memcache result for /0/pplns_est
     # this is the quickest way to make sure only 1 thread
