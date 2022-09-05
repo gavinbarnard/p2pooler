@@ -392,6 +392,8 @@ def application(environ, start_response):
         usecache = False
     elif "{}payout_est".format(VERSION_PREFIX) == request_uri:
         usecache = False
+    elif "{}/workers".format(VERSION_PREFIX) == request_uri:
+        usecache = False
     contype = "text/plain"
     nothing = False
     
