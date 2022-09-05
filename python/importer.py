@@ -67,7 +67,7 @@ def main():
         else:
             #r.json().set(key, "$", val[key])
             print("imported {}".format(key))
-    with open("balance.json", 'r') as fh:
+    with open("balances.json", 'r') as fh:
         dump_truck = json.loads(fh.read())
     redis_keys = r.keys("b_*")
     for val in dump_truck:

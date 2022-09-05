@@ -36,7 +36,7 @@ def main():
     dump_me = []
     resp = r.keys("b_*")
     for key in resp:
-        dk = r.get(key)
+        dk = int(r.get(key))
         dump_me.append({str(key, 'utf-8'): dk})
     with open("balances.json", 'w') as fh:
         fh.write(json.dumps(dump_me, indent=True))
@@ -48,6 +48,6 @@ def main():
         dump_me.append({str(key, 'utf-8'): dk})
     with open("blocks.json", 'w') as fh:
         fh.write(json.dumps(dump_me, indent=True))
-        
+
 if __name__ == "__main__":
     main()
