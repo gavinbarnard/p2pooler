@@ -65,7 +65,11 @@ def get_stats(wallet=None):
         miners = get_miners(config_items['p2pooler_rpc'],config_items['p2pooler_token'])
         if wallet in miners.keys():
             miner_hr = get_hr_wallet(config_items['p2pooler_rpc'],config_items['p2pooler_token'], wallet)
-            miner_bal = int(r.get("b_{}".format(wallet))) / 1e12
+            bal = r.get("b_{}".format(wallet))
+            if bal:
+                miner_bal = int(bal) / 1e12
+            else:
+                miner_bal = 0
             worker_count = len(miners[wallet]['rigs'])
             miner_share = get_shares(wallet)
     stat_array = {
