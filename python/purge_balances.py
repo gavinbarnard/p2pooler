@@ -24,14 +24,13 @@ from util.config import cli_options, parse_config
 config_options =  parse_config(cli_options())
 r = redis.Redis(port=config_options['redis_port'])
 
+
 def main():
-    dump_me = []
-    resp = r.keys("s_*")
-    for key in resp:
-        dk = r.json().get(key)
-        dump_me.append({str(key, 'utf-8'): dk})
-    with open("dump.json", 'w') as fh:
-        fh.write(json.dumps(dump_me, indent=True))
+    bkeys = r.keys("b_*")
+    Bkeys = r.keys("B_*")
+    for key in bkeys + Bkeys:
+        r.delete(key)
+
 
 if __name__ == "__main__":
     main()

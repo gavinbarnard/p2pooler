@@ -19,9 +19,11 @@
 import socketserver
 import redis
 import json
-from validator import validate_address
+from util.validator import validate_address
+from util.config import cli_options, parse_config
 
-r = redis.Redis()
+config_options =  parse_config(cli_options())
+r = redis.Redis(port=config_options['redis_port'])
 
 class PPLNS_handler(socketserver.DatagramRequestHandler):
     def handle(self):
@@ -56,9 +58,10 @@ class PPLNS_handler(socketserver.DatagramRequestHandler):
             print("user {} is not a valid monero address".format(user))
 
 def main():
-    ServerAddress = ("127.0.0.1", 6969)
+
+    ServerAddress = ("127.0.0.1", config_options['receiver_port'])
     UDPServerObject = socketserver.ThreadingUDPServer(ServerAddress, PPLNS_handler)
-    print("Starting PPLNS receiver on 127.0.0.1:6969 start p2pooler now")
+    print("Starting PPLNS receiver on 127.0.0.1:{} start p2pooler now".format(config_options['receiver_port']))
     UDPServerObject.serve_forever()
 
 if __name__ == "__main__":

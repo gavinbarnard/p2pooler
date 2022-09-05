@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<header>    
+<title><!-- SITENAME --!> - Block UI</title>
+            <style>
+            body {
+                font-family: "Courier New", Courier, monospace;
+            }
+            header {
+                font-size: larger;
+                font-weight: bold;
+                padding-bottom: 1em;
+            }
+            table {
+                padding-bottom: 1em;
+            }
+            td {
+                vertical-align: top;
+                white-space: nowrap;
+            }
+            td:last-child {
+                white-space: unset;
+            }
+	    .poolstate {
+		    font-size: x-small;
+	    }
+            .miner {
+                display: none;
+            }
+            #address {
+                min-width: 10ch;
+                max-width: 10ch;
+                overflow: hidden;
+                border-bottom: 1px dashed black;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                word-wrap: unset;
+            }
+            #address:focus {
+                outline: 0px solid transparent;
+                text-overflow: initial;
+                white-space: initial;
+                word-wrap: break-word;
+            }
+	    .alight:link{
+		    color: blue;
+	    }
+	    .alight:visited{
+		    color: purple;
+	    }
+	    .alight:hover{
+		    color: red;
+	    }
+	    .alight:active{
+		    color: red;
+	    }
+            .adark:link{
+		    color: #4ddbff;
+	    }
+	    .adark:visited {
+		    color: #BF5FFF;
+	    }
+	    .adark:hover{
+		    color: #7F00FF;
+	    }
+	    .adark:active{
+		    color: #7F00FF;
+	    }
+        </style>
+</header>
+<body>
+        <table>
+            <tr><td><header>Blocks found</header></td><td>&nbsp;</td><td>&nbsp;</td><td><small><a target="_blank" class="alight" href="/0/blockui.html">Block UI</a></small></td></tr>
+        </table>
+        <table id="block_table">
+           <tr><td><image src=/data.gif></td></tr>
+        </table>
+
+
+</body>
+<script>
+
+
+var xmlhttp_block = new XMLHttpRequest();
+
+xmlhttp_block.onreadystatechange = function()
+{
+	if (this.readyState == 4 && this.status == 200 )
+	{
+		block_data = JSON.parse(this.responseText);
+		updateBlocks(block_data);
+	}
+}
+
+function updateBlocks(block_data)
+{
+	let now = new Date();
+	let thirty_days_ago = new Date(now.setDate(now.getDate() - 30));
+	var found_within_thirty = 0;
+	block_t = document.getElementById("block_table");
+	block_t.innerHTML = "<tr><td>Height</td><td>Status</td><td>Hash Match</td><td>To Unlock</td><td>Date</td><td>Reward</td><td>Effort</td></tr>";
+	maxeff = 0;
+	uncounted_blocks = 0;
+	for (i = 0; i < block_data.length; i++)
+	{
+		if (block_data[i]['status'] != "ORPHANED") {
+			maxeff = maxeff + block_data[i]['effort'];
+		} else {
+			uncounted_blocks = uncounted_blocks + 1;
+		}
+		d = new Date(block_data[i]['timestamp']*1000);
+		if (block_data[i]['timestamp']*1000 >= thirty_days_ago)
+		{
+			found_within_thirty = found_within_thirty + 1;
+		}
+		block_t.innerHTML = block_t.innerHTML + "<tr><td><a href=/0/blockui.html?block=" + block_data[i]['height'] + ">" + block_data[i]['height'] + "</a></td><td>" + block_data[i]['status'] + "</td><td>" + block_data[i]['hash_match'] + "</td><td> " + block_data[i]['blocks_to_unlock'] + "/60</td><td>" + d.toGMTString() + "</td><td>" + block_data[i]['reward']/1000000000000 + "</td><td>" + block_data[i]['effort'] + "%</td></tr>";
+	}
+	avgeff = maxeff/(block_data.length-uncounted_blocks);
+	block_t.innerHTML = block_t.innerHTML + "<tr><td></td><td></td><td></td><td></td><td></td><td>Average Effort</td><td>"+avgeff.toFixed(2)+"%</td></tr>"
+}
+
+xmlhttp_block.open("GET","/0/blocks.all.really", true);
+xmlhttp_block.send();
+
+</script>
+</html>

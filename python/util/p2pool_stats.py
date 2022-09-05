@@ -16,22 +16,21 @@
 # *   along with this program. If not, see <http://www.gnu.org/licenses/>.
 # */
 
-
-import redis
 import json
-from util.config import cli_options, parse_config
+from os.path import exists
 
-config_options =  parse_config(cli_options())
-r = redis.Redis(port=config_options['redis_port'])
+STAT_FILES = ['network', 'local', 'pool']
 
-def main():
-    dump_me = []
-    resp = r.keys("s_*")
-    for key in resp:
-        dk = r.json().get(key)
-        dump_me.append({str(key, 'utf-8'): dk})
-    with open("dump.json", 'w') as fh:
-        fh.write(json.dumps(dump_me, indent=True))
-
-if __name__ == "__main__":
-    main()
+def get_stat(stat_dir, stat_type):
+    resp = None
+    if stat_type == "stats_mod":
+        filename = "{}/stats_mod".format(stat_dir)
+    else:
+        if stat_type in STAT_FILES:
+            filename = "{}/{}/stats".format(stat_dir, stat_type)
+    if exists(filename):
+        with open(filename, 'r') as fh:
+            resp = fh.read()
+    if resp:
+        resp = json.loads(resp)
+    return resp

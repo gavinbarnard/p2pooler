@@ -18,9 +18,11 @@
 
 import redis
 from time import time
+from util.config import cli_options, parse_config
 
+config_options =  parse_config(cli_options())
+r = redis.Redis(port=config_options['redis_port'])
 
-r = redis.Redis()
 
 def fmt_memory(memory):
     size_dict = ['b',

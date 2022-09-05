@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<header>    
+<title><!-- SITENAME --!> - Block UI</title>
+            <style>
+            body {
+                font-family: "Courier New", Courier, monospace;
+            }
+            header {
+                font-size: larger;
+                font-weight: bold;
+                padding-bottom: 1em;
+            }
+            table {
+                padding-bottom: 1em;
+            }
+            td {
+                vertical-align: top;
+                white-space: nowrap;
+            }
+            td:last-child {
+                white-space: unset;
+            }
+	    .poolstate {
+		    font-size: x-small;
+	    }
+            .miner {
+                display: none;
+            }
+            #address {
+                min-width: 10ch;
+                max-width: 10ch;
+                overflow: hidden;
+                border-bottom: 1px dashed black;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                word-wrap: unset;
+            }
+            #address:focus {
+                outline: 0px solid transparent;
+                text-overflow: initial;
+                white-space: initial;
+                word-wrap: break-word;
+            }
+	    .alight:link{
+		    color: blue;
+	    }
+	    .alight:visited{
+		    color: purple;
+	    }
+	    .alight:hover{
+		    color: red;
+	    }
+	    .alight:active{
+		    color: red;
+	    }
+            .adark:link{
+		    color: #4ddbff;
+	    }
+	    .adark:visited {
+		    color: #BF5FFF;
+	    }
+	    .adark:hover{
+		    color: #7F00FF;
+	    }
+	    .adark:active{
+		    color: #7F00FF;
+	    }
+        </style>
+</header>
+<body>
+        <table>
+            <tr><td><header>Blocks data</header></td><td>&nbsp;</td><td>&nbsp;</td><td><small><a target="_blank" class="alight" href="/0/blockui.html">Block UI</a></small></td></tr>
+        </table>
+        <table id="block_table">
+           <tr><td><!-- BLOCKDATA --!></td></tr>
+        </table>
+
+
+</body>
+<script>
+</script>
+</html>
