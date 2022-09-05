@@ -156,20 +156,20 @@
 	<li>Run in an Administrative Command prompt, or with sudo</li>
 	<li>On initial launch it may say that it is enabled huge page but that a reboot is needed, it is highly recommended to reboot to get a better hashrate</li>
 	<li>Example CLI:</li>
-	<li>xmrig -o pool.aterx.com:4244 --tls --keepalive -u &lt;walletid&gt; --algo rx/0 --rig-id &lt;CustomRigIdentifier&gt;</li>
+	<li>xmrig -o pool.aterx.com:4246 --keepalive -u &lt;walletid&gt; --algo rx/0 --rig-id &lt;CustomRigIdentifier&gt;</li>
 	<li>Example Pools section of config.json:</li>
 	<li><pre>
 "pools": [
      {
             "algo": "rx/0",
             "coin": null,
-            "url": "pool.aterx.com:4244",
+            "url": "pool.aterx.com:4246",
             "user": "&lt;wallet&gt;",
             "pass": "",
 	    	"rig-id": "&lt;custom-rig-id&gt;",
             "keepalive": true,
             "enabled": true,
-            "tls": true,
+            "tls": false,
             "tls-fingerprint": null,
             "daemon": false,
             "socks5": null,
