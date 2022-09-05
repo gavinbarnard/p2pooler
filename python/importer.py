@@ -36,7 +36,7 @@ def ts_sort(a, b):
 
 
 def main():
-    with open("dump.json", 'r') as fh:
+    with open("shares.json", 'r') as fh:
         dump_truck = json.loads(fh.read())
     redis_keys = r.keys("s_*")
     for val in dump_truck:
@@ -62,10 +62,25 @@ def main():
                 print("pretty sure this is duplicate data")
             else:    
                 sort_list = sorted(merged_list, key=cmp_to_key(ts_sort))
+                print("merging monster")
                 print(json.dumps(sort_list, indent=True))
         else:
-            r.json().set(key, "$", val[key])
+            #r.json().set(key, "$", val[key])
             print("imported {}".format(key))
+    with open("balance.json", 'r') as fh:
+        dump_truck = json.loads(fh.read())
+    redis_keys = r.keys("b_*")
+    for val in dump_truck:
+        key = list(val.keys())[0]
+        print("key:{} val: {}".format(key, val[key]))
+        #r.set(key, val[0])
+
+    with open("blocks.json", 'r') as fh:
+        dump_truck = json.loads(fh.read())
+    for val in dump_truck:
+        key = list(val.keys())[0]
+        print("key: {} val: {}".format(key, val[key]))
+
 
 
 if __name__ == "__main__":
