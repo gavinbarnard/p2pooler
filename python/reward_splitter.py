@@ -30,6 +30,7 @@ r = redis.Redis(port=config_options['redis_port'])
 def main():
     in_tx = wallet_get_transfers_in(config_options['wallet_rpc'])
     skeys = r.keys("s_*")
+    superman_three_total = 0
     for tx in in_tx:
         if tx['type'] == "block" and not tx['locked']:
             print("Height: {}\t ts: {}\t reward: {}".format(
@@ -74,7 +75,9 @@ def main():
                     print("over reward check your maff")
                     raise("Over reward")
                 elif all_reward < tx['amount']:
-                    print("under reward definetly lost to floor() {}".format(tx['amount'] - all_reward))
+                    superman_three = tx['amount'] - all_reward
+                    superman_three_total += superman_three
+                    print("under reward definetly lost to floor() {}".format(superman_three))
                 elif all_reward == tx['amount']:
                     print("perfection")
                 for key in all_reward_dict.keys():
@@ -106,9 +109,12 @@ def main():
                 if reward > tx['amount']:
                     print("over reward recorded!!")
                 elif reward < tx['amount']:
-                    print("under reward floor got {}".format(tx['amount'] - reward))
+                    superman_three = tx['amount'] - reward
+                    superman_three_total += superman_three
+                    print("under reward floor got {}".format(superman_three))
                 elif reward == tx['amount']:
                     print("perfection")
+    print("superman three total: {}".format(superman_three_total))
 
 if __name__ == "__main__":
     main()
