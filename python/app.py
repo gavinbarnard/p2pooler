@@ -54,7 +54,6 @@ def get_stats(wallet=None):
     info = monerod_get_info(config_items['monero_rpc'])
     p2pooler_sum = get_summary(config_items['p2pooler_rpc'], config_items['p2pooler_token'])
     blocks = get_mined()
-    blocks.reverse()
     p2_round = round(p2stats_mod['pool']['roundHashes'] / p2network['difficulty'] * 100, 2)
     miner_hr = 0
     miner_bal = 0
