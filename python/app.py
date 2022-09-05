@@ -453,7 +453,7 @@ def application(environ, start_response):
         else:
             nothing = True
             body = "This should not be served"
-        if not nothing and "{}payments".format(VERSION_PREFIX) != request_uri and "{}blockui.thml".format(VERSION_PREFIX) and "{}payout_est".format(VERSION_PREFIX):
+        if not nothing and "{}payments".format(VERSION_PREFIX) != request_uri and "{}blockui.thml".format(VERSION_PREFIX) != request_uri and "{}payout_est".format(VERSION_PREFIX) != request_uri and "{}workers".format(VERSION_PREFIX) != request_uri:
             memcache_client.set("{}_last".format(request_uri), json.dumps([datetime.now().timestamp()]))
             memcache_client.set("{}_contype".format(request_uri), json.dumps([contype]))
             memcache_client.set("{}_body".format(request_uri), json.dumps([body]))
