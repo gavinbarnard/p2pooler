@@ -90,7 +90,7 @@ void xmrig::Recorder::accept(const AcceptEvent *event)
     const char* user = event->miner()->user();
     const u_int64_t timestamp = Chrono::currentMSecsSinceEpoch();
     const u_int64_t diff = event->result.diff;
-    LOG_PPLNS("user=%s,ts=%" PRIu64",diff=%" PRIu64, (char*)user, timestamp, diff);
+    //LOG_PPLNS("user=%s,ts=%" PRIu64",diff=%" PRIu64, (char*)user, timestamp, diff);
     struct hostent *server;
     int portno = 6969;
     struct sockaddr_in serv_addr;
