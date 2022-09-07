@@ -466,11 +466,7 @@ def application(environ, start_response):
                     contype = "application/json"
                     body = ""
             elif "{}stats".format(VERSION_PREFIX) == request_uri:
-                if wa:
-                    contype, body = json_stats_response(wa)
-                else:
-                    contype = "application/json"
-                    body = ""
+                contype, body = json_stats_response(wa)
             elif "{}multi".format(VERSION_PREFIX) == request_uri:
                 contype, body = json_get_multi()
             elif "{}blocks.all".format(VERSION_PREFIX) == request_uri:
