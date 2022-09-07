@@ -255,11 +255,32 @@ function updatePayments(payment_data)
 
 		payments_t = document.getElementById("payments_table");
 		payments_t.innerHTML = "";
+		var phase = 0;
 		for (i = 0; i < payment_data.length; i++)
 		{
-			reward = payment_data[i]['reward'] / 1e+12;
-			d = new Date(payment_data[i]['timestamp']*1000);
-			payments_t.innerHTML = payments_t.innerHTML + "<tr><td>" + reward + " XMR to " + payment_data[i]['miner_count'] + " miners on " + d.toGMTString() + "</td></tr>";
+			if (payment_data[i] == "- - -")
+			{
+				if (phase == 0) {
+					payments_t.innerHTML = payments_t.innerHTML + "<tr><td>Your allocations</td></tr>";
+				} else if (phase == 1) {
+					payments_t.innerHTML = payments_t.innerHTML +"<tr><td>Your payouts</td></tr>";
+				}
+				phase = phase + 1;
+				continue;
+			}
+			if (phase == 0){ 
+				reward = payment_data[i]['reward'] / 1e+12;
+				d = new Date(payment_data[i]['timestamp']*1000);
+				payments_t.innerHTML = payments_t.innerHTML + "<tr><td>" + reward + " XMR to " + payment_data[i]['miner_count'] + " miners on " + d.toGMTString() + "</td></tr>";
+			}
+			if (phase == 1){
+				d = new Date(payment_data[i]['timestamp']);
+				payments_t.innerHTML = payments_t.innerHTML + "<tr><td> Block: " + payment_data[i]['block'] + " Allocation: " + payment_data[i]['allocation'] / 1e12 + " on " + d.toGMTString() + "</td></tr>" 
+			} else if (phase == 2)
+			{
+				d = new Date(payment_data[i]['timestamp']*1000);
+				payments_t.innerHTML = payments_t.innerHTML + "<tr><td> Height: " + payment_data[i]['height'] + " Amount: " + payment_data[i]['amount'] / 1e12 + " on " + d.toGMTString() + "</td></tr>" 
+			}
 		}
 }
 function updateBlocks(block_data)

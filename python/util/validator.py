@@ -29,4 +29,5 @@ if __name__ == "__main__":
     print("running test")
     assert validate_address("41jyth3Xv8vJPTRBPNXfLJ29jo2do8aC2CPXXeCNHCFRjjNhZ1GB2HETntXWAJqgr2Y9my5XTanKKWFzRZG8scX13AUNYWq") == True
     assert validate_address("donkey_balls") == False
+    assert validate_address(None) == False
     print("finish tests without assertion")

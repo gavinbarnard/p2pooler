@@ -25,12 +25,7 @@ from pymemcache.client import base
 from os.path import exists
 from time import time
 
-from util.config import parse_config, cli_options
-#from util.moneropooldb import get_mined, get_payments, get_pplns_window_estimate
-from util.cookiecutter import cookiecutter
-from util.rpc import monerod_get_block, monerod_get_info, wallet_get_transfers_out, wallet_get_transfers_in
-from util.p2pool_stats import get_stat
-from util.p2pooler import get_summary, get_hr_wallet, get_miners, get_workers_by_wa
+from util import *
 #from bonusbot import get_latest_winner
 
 BLOCK_TIME = 120
@@ -39,14 +34,61 @@ config_items = parse_config(cli_options())
 r = redis.Redis(port=config_items['redis_port'])
 #pooldd = config_items['pooldd']
 
+def json_generic_response(generic_item):
+    contype = "application/json"
+    body = json.dumps(generic_item, indent=True)
+    return contype, body
+
+
 def get_shares(wallet=None):
     share_count = 0
     if wallet:
         share_count = r.json().arrlen("s_{}".format(wallet))
     return share_count
 
+def get_splits(wallet=None):
+    response = []
+    if wallet:
+        bkeys = r.keys("B_*")
+        for key in bkeys:
+            block_allocate = 0
+            block = str(key[2:], 'utf-8')
+            try:
+                block_allocate = r.json().get(key, ".{}".format(wallet))
+            except Exception as e:
+                block_allocate = 0
+            
+            if block_allocate:
+                block_allocate = int(block_allocate)
+                try:
+                    ts = r.json().get(key, ".timestamp")
+                    ts = int(ts)
+                except Exception as t:
+                    ts = 0
+            
+            if block_allocate > 0:
+                response.append({
+                    "block": block,
+                    "allocation": block_allocate,
+                    "timestamp": ts
+                })
+    return response
 
-def get_stats(wallet=None):
+def get_payment(wallet=None):
+    response =[]
+    outtxs = wallet_get_transfers_out(config_items['wallet_rpc'])
+    for tx in outtxs:
+        if "destinations" in tx.keys():
+            for addr in tx['destinations']:
+                if addr['address'] == wallet:
+                    response.append({
+                        "height": tx['height'],
+                        "amount": addr['amount'],
+                        "timestamp": tx['timestamp']
+                    })
+    return response
+
+def json_stats_response(wallet=None):
     p2local = get_stat(config_items['p2pool_stats'], "local")
     p2network = get_stat(config_items['p2pool_stats'], "network")
     p2pool = get_stat(config_items['p2pool_stats'], "pool")
@@ -266,7 +308,7 @@ def json_get_multi():
     response['multi'] = 0
     #pool_stats = moneropool_get_stats(config_items['site_ip'])
     #FIX ME
-    unused_var, pool_stats = get_stats()
+    unused_var, pool_stats = json_stats_response()
     pool_stats = json.loads(pool_stats)
     #pool_stats['pool_hashrate'] = 0
     #pool_stats['network_hashrate'] = 0
@@ -278,7 +320,7 @@ def json_get_multi():
     response['multi'] = multi
     return json_generic_response(response)
 
-def json_payments_summary():
+def json_payments_summary(wallet=None):
     response = []
     payments = wallet_get_transfers_out(config_items['wallet_rpc'])
     for payment in payments:
@@ -290,10 +332,15 @@ def json_payments_summary():
             bb['miner_count'] = 'Unknown'
         bb['timestamp'] = payment['timestamp']
         response.append(bb)
+    if wallet:
+        response.append("- - -")
+        response += get_splits(wallet)
+        response.append("- - -")
+        response += get_payment(wallet)
     return json_generic_response(response)
 
 def json_blocks_all_really_response():
-    return json_generic_response(get_mined().reverse())
+    return json_generic_response(get_mined())
 
 def json_blocks_all_response():
     final_blocks = get_mined()
@@ -302,14 +349,9 @@ def json_blocks_all_response():
 
 def json_blocks_response():
     final_blocks = get_mined()
-    final_blocks.reverse()
     final_blocks = final_blocks[:30]
     return json_generic_response(final_blocks)
 
-def json_generic_response(generic_item):
-    contype = "application/json"
-    body = json.dumps(generic_item, indent=True)
-    return contype, body
 
 def html_generic_response(generic_item):
     contype = "text/html"
@@ -355,6 +397,8 @@ def application(environ, start_response):
             dark_mode = False
     else:
         dark_mode = False
+        wa = None
+    if not validate_address(wa):
         wa = None
     parameters = {}
     if "?" in request_uri:
@@ -422,17 +466,19 @@ def application(environ, start_response):
                     contype = "application/json"
                     body = ""
             elif "{}stats".format(VERSION_PREFIX) == request_uri:
-                contype, body = get_stats(wa)
+                if wa:
+                    contype, body = json_stats_response(wa)
+                else:
+                    contype = "application/json"
+                    body = ""
             elif "{}multi".format(VERSION_PREFIX) == request_uri:
                 contype, body = json_get_multi()
             elif "{}blocks.all".format(VERSION_PREFIX) == request_uri:
                 contype, body = json_blocks_all_response()
             elif "{}blocks.all.really".format(VERSION_PREFIX) == request_uri:
                 contype, body = json_blocks_all_really_response()
-            #elif "{}payments".format(VERSION_PREFIX) == request_uri and len(wa) > 0:
-            #    contype, body = json_generic_response(get_payments(pooldd, wa))
             elif "{}payments.summary".format(VERSION_PREFIX) == request_uri:
-                contype, body = json_payments_summary()
+                contype, body = json_payments_summary(wa)
             elif "{}pool.html".format(VERSION_PREFIX) == request_uri:
                 contype, body = pool_page()
             elif "{}blockui.html".format(VERSION_PREFIX) == request_uri:
@@ -445,9 +491,6 @@ def application(environ, start_response):
                 contype, body = data_gif()
             elif "{}graph_stats.json".format(VERSION_PREFIX) == request_uri:
                 contype, body = json_graph_stats()
-            #elif "{}bonus_address".format(VERSION_PREFIX) == request_uri:
-            #    response = get_latest_winner()
-            #    contype, body = json_generic_response(response)
             else:
                 contype, body = html_generic_response("I got nothing for you man!")
                 nothing = True

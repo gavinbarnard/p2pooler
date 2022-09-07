@@ -42,18 +42,6 @@ def monerod_get_info(rpc_port, site="localhost"):
     r.raise_for_status()
     return r.json()
 
-def moneropool_get_stats(site_ip, wa=None, ssl=False):
-    cookies = None
-    if (wa):
-        cookies = {}
-        cookies['wa'] = wa
-    if ssl:
-        r = requests.get("https://{}/stats".format(site_ip), cookies=cookies)
-    else:
-        r = requests.get("http://{}/stats".format(site_ip), cookies=cookies)
-    r.raise_for_status()
-    return r.json()
-
 def wallet_get_transfers_out(rpc_port, site="localhost"):
     data = {
         "jsonrpc":"2.0",
