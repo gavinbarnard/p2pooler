@@ -21,7 +21,6 @@ import redis
 from glob import glob
 from math import floor
 from datetime import datetime
-from pymemcache.client import base
 from os.path import exists
 from time import time
 from operator import itemgetter
@@ -428,9 +427,6 @@ def application(environ, start_response):
         parameters = final_p
     if len(request_uri) > 128:
         request_uri = request_uri[0:128]
-    memcache_client = base.Client(('localhost',11211))
-    last_api_time = memcache_client.get("{}_last".format(request_uri))
-    usecache = False
     time_multi = 1
     if last_api_time == None:
         last_api_time = 0
@@ -455,76 +451,47 @@ def application(environ, start_response):
         usecache = False
     contype = "text/plain"
     nothing = False
-    usecache = False 
-    # non parallel friendly! only let one thread do this at a time
-    # this will update the memcache result for /0/pplns_est
-    # this is the quickest way to make sure only 1 thread
-    # executes this at a time.
-    # schedule a cronjob to hit curl http://localhost:5252/local/0/pplns_est_generate
-    # to update this do not expose this API to the world
-    # may the spirits have mercy on you if you do
-#    if "/local{}pplns_est_generate".format(VERSION_PREFIX) == request_uri:
-#        contype, body = json_pplns_estimate()
-#        request_uri = "{}pplns_est".format(VERSION_PREFIX)
-#        memcache_client.set("{}_last".format(request_uri), json.dumps([datetime.now().timestamp()]))
-#        memcache_client.set("{}_contype".format(request_uri), json.dumps([contype]))
-#        memcache_client.set("{}_body".format(request_uri), json.dumps([body]))
-    if not usecache:
-        if VERSION_PREFIX == request_uri[0:len(VERSION_PREFIX)]:
-            if "{}blocks".format(VERSION_PREFIX) == request_uri:
-                contype, body = json_blocks_response()
-            elif "{}workers".format(VERSION_PREFIX) == request_uri:
-                if wa:
-                    contype, body = json_generic_response(get_workers_by_wa(config_items['p2pooler_rpc'], config_items['p2pooler_token'], wa))
-                else:
-                    contype = "application/json"
-                    body = ""
-            elif "{}needreward".format(VERSION_PREFIX) == request_uri:
-                contype, body = json_generic_response(unsplit_block())
-            elif "{}stats".format(VERSION_PREFIX) == request_uri:
-                contype, body = json_stats_response(wa)
-            elif "{}multi".format(VERSION_PREFIX) == request_uri:
-                contype, body = json_get_multi()
-            elif "{}blocks.all".format(VERSION_PREFIX) == request_uri:
-                contype, body = json_blocks_all_response()
-            elif "{}blocks.all.really".format(VERSION_PREFIX) == request_uri:
-                contype, body = json_blocks_all_really_response()
-            elif "{}payments.summary".format(VERSION_PREFIX) == request_uri:
-                contype, body = json_payments_summary(wa)
-            elif "{}pool.html".format(VERSION_PREFIX) == request_uri:
-                contype, body = pool_page()
-            elif "{}blockui.html".format(VERSION_PREFIX) == request_uri:
-                if parameters:
-                    if "block" in parameters.keys():
-                        contype, body = block_page(parameters['block'])
-                else:
-                    contype, body = blockui_page()
-            elif "{}data.gif".format(VERSION_PREFIX) == request_uri:
-                contype, body = data_gif()
-            elif "{}graph_stats.json".format(VERSION_PREFIX) == request_uri:
-                contype, body = json_graph_stats()
+
+    if VERSION_PREFIX == request_uri[0:len(VERSION_PREFIX)]:
+        if "{}blocks".format(VERSION_PREFIX) == request_uri:
+            contype, body = json_blocks_response()
+        elif "{}workers".format(VERSION_PREFIX) == request_uri:
+            if wa:
+                contype, body = json_generic_response(get_workers_by_wa(config_items['p2pooler_rpc'], config_items['p2pooler_token'], wa))
             else:
-                contype, body = html_generic_response("I got nothing for you man!")
-                nothing = True
+                contype = "application/json"
+                body = ""
+        elif "{}needreward".format(VERSION_PREFIX) == request_uri:
+            contype, body = json_generic_response(unsplit_block())
+        elif "{}stats".format(VERSION_PREFIX) == request_uri:
+            contype, body = json_stats_response(wa)
+        elif "{}multi".format(VERSION_PREFIX) == request_uri:
+            contype, body = json_get_multi()
+        elif "{}blocks.all".format(VERSION_PREFIX) == request_uri:
+            contype, body = json_blocks_all_response()
+        elif "{}blocks.all.really".format(VERSION_PREFIX) == request_uri:
+            contype, body = json_blocks_all_really_response()
+        elif "{}payments.summary".format(VERSION_PREFIX) == request_uri:
+            contype, body = json_payments_summary(wa)
+        elif "{}pool.html".format(VERSION_PREFIX) == request_uri:
+            contype, body = pool_page()
+        elif "{}blockui.html".format(VERSION_PREFIX) == request_uri:
+            if parameters:
+                if "block" in parameters.keys():
+                    contype, body = block_page(parameters['block'])
+            else:
+                contype, body = blockui_page()
+        elif "{}data.gif".format(VERSION_PREFIX) == request_uri:
+            contype, body = data_gif()
+        elif "{}graph_stats.json".format(VERSION_PREFIX) == request_uri:
+            contype, body = json_graph_stats()
         else:
+            contype, body = html_generic_response("I got nothing for you man!")
             nothing = True
-            body = "This should not be served"
-        if not nothing and "{}payments".format(VERSION_PREFIX) != request_uri and "{}blockui.thml".format(VERSION_PREFIX) != request_uri \
-            and "{}payout_est".format(VERSION_PREFIX) != request_uri and "{}workers".format(VERSION_PREFIX) != request_uri and "{}/stats".format(VERSION_PREFIX) != request_uri:
-            memcache_client.set("{}_last".format(request_uri), json.dumps([datetime.now().timestamp()]))
-            memcache_client.set("{}_contype".format(request_uri), json.dumps([contype]))
-            memcache_client.set("{}_body".format(request_uri), json.dumps([body]))
     else:
-        contype = memcache_client.get("{}_contype".format(request_uri))
-        body = memcache_client.get("{}_body".format(request_uri))
-        if contype and body:
-            contype = json.loads(contype)[0]
-            body = json.loads(body)[0]
-        else:
-            contype = "text/plain"
-            body = "cache failure, deleted cache entries"
-            memcache_client.delete("{}_last".format(request_uri))
-            memcache_client.delete("{}_body".format(request_uri))
-            memcache_client.delete("{}_contype".format(request_uri))
+        nothing = True
+        body = "This should not be served"
+
+
     start_response('200 OK', [('Content-Type', contype)])
     return [body.encode('utf-8')]
