@@ -24,6 +24,7 @@ from datetime import datetime
 from pymemcache.client import base
 from os.path import exists
 from time import time
+from operator import itemgetter
 
 from util import *
 #from bonusbot import get_latest_winner
@@ -33,6 +34,17 @@ VERSION_PREFIX = "/1/"
 config_items = parse_config(cli_options())
 r = redis.Redis(port=config_items['redis_port'])
 #pooldd = config_items['pooldd']
+
+def unsplit_block():
+    bkeys = r.keys("B_*")
+    skeys = []
+    unpaid = []
+    for i in bkeys:
+        skeys.append(int(i[2:]))
+    for block in get_mined():
+        if block['height'] not in skeys:
+            unpaid.append(block['height'])
+    return unpaid
 
 def json_generic_response(generic_item):
     contype = "application/json"
@@ -72,7 +84,8 @@ def get_splits(wallet=None):
                     "allocation": block_allocate,
                     "timestamp": ts
                 })
-    return response
+    sorted_response = sorted(response, key=itemgetter("block"), reverse=True)
+    return sorted_response[0:30]
 
 def get_payment(wallet=None):
     response =[]
@@ -86,7 +99,8 @@ def get_payment(wallet=None):
                         "amount": addr['amount'],
                         "timestamp": tx['timestamp']
                     })
-    return response
+    sorted_response = sorted(response, key=itemgetter('height'), reverse=True)
+    return sorted_response[0:30]
 
 def json_stats_response(wallet=None):
     p2local = get_stat(config_items['p2pool_stats'], "local")
@@ -465,6 +479,8 @@ def application(environ, start_response):
                 else:
                     contype = "application/json"
                     body = ""
+            elif "{}needreward".format(VERSION_PREFIX) == request_uri:
+                contype, body = json_generic_response(unsplit_block())
             elif "{}stats".format(VERSION_PREFIX) == request_uri:
                 contype, body = json_stats_response(wa)
             elif "{}multi".format(VERSION_PREFIX) == request_uri:
