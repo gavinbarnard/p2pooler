@@ -91,8 +91,8 @@
 	    <tr><td>Payment threshold: </td><td id="payment_threshold"></td></tr>
 	    <tr><td>Payout schedule: </td><td>Every Sunday at 11:00am Eastern</td></tr>
             <tr><td><a class="alight" href="#poolfee">Pool fee:</a> </td><td id="pool_fee"></td></tr>
-			<tr><td>Pool Unencrypted port: </td><td id="unencrypted_port">4246</td></tr>
-            <tr><td>Pool SSL port: </td><td>Coming back soon</td></tr>
+			<tr><td>Pool Unencrypted port: </td><td id="unencrypted_port">4245, 4246</td></tr>
+            <tr><td>Pool SSL port: </td><td>4244</td></tr>
             <tr><td>Miners connected: </td><td id="connected_miners"></td></tr>
             <tr class="miner"><td>Your HR: </td><td id="miner_hashrate"></td></tr>
             <tr class="miner"><td>Balance due: </td><td id="miner_balance"></td></tr>
@@ -156,20 +156,20 @@
 	<li>Run in an Administrative Command prompt, or with sudo</li>
 	<li>On initial launch it may say that it is enabled huge page but that a reboot is needed, it is highly recommended to reboot to get a better hashrate</li>
 	<li>Example CLI:</li>
-	<li>xmrig -o pool.aterx.com:4246 --keepalive -u &lt;walletid&gt; --algo rx/0 --rig-id &lt;CustomRigIdentifier&gt;</li>
+	<li>xmrig -o pool.aterx.com:4244 --tls --keepalive -u &lt;walletid&gt; --algo rx/0 --rig-id &lt;CustomRigIdentifier&gt;</li>
 	<li>Example Pools section of config.json:</li>
 	<li><pre>
 "pools": [
      {
             "algo": "rx/0",
             "coin": null,
-            "url": "pool.aterx.com:4246",
+            "url": "pool.aterx.com:4244",
             "user": "&lt;wallet&gt;",
             "pass": "",
 	    	"rig-id": "&lt;custom-rig-id&gt;",
             "keepalive": true,
             "enabled": true,
-            "tls": false,
+            "tls": true,
             "tls-fingerprint": null,
             "daemon": false,
             "socks5": null,
