@@ -41,7 +41,7 @@ def unsplit_block():
     for i in bkeys:
         skeys.append(int(i[2:]))
     for block in get_mined():
-        if block['height'] not in skeys:
+        if block['height'] not in skeys and block['status'] == "UNLOCKED":
             unpaid.append(block['height'])
     return unpaid
 
