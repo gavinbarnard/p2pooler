@@ -427,31 +427,8 @@ def application(environ, start_response):
         parameters = final_p
     if len(request_uri) > 128:
         request_uri = request_uri[0:128]
-    time_multi = 1
-    if last_api_time == None:
-        last_api_time = 0
-    else:
-        last_api_time = json.loads(last_api_time)[0]
-    now = datetime.now().timestamp()
-    if now - last_api_time > (30 * time_multi) or last_api_time == 0 or len(parameters) > 0:
-        usecache = False
-    else:
-        usecache = True
-    if "{}pplns_est".format(VERSION_PREFIX) == request_uri:
-        usecache = True
-    elif "{}payments".format(VERSION_PREFIX) == request_uri:
-        usecache = False
-    elif "{}blockui.html".format(VERSION_PREFIX) == request_uri:
-        usecache = False
-    elif "{}payout_est".format(VERSION_PREFIX) == request_uri:
-        usecache = False
-    elif "{}/workers".format(VERSION_PREFIX) == request_uri:
-        usecache = False
-    elif "{}/stats".format(VERSION_PREFIX) == request_uri:
-        usecache = False
     contype = "text/plain"
     nothing = False
-
     if VERSION_PREFIX == request_uri[0:len(VERSION_PREFIX)]:
         if "{}blocks".format(VERSION_PREFIX) == request_uri:
             contype, body = json_blocks_response()
@@ -490,7 +467,7 @@ def application(environ, start_response):
             nothing = True
     else:
         nothing = True
-        body = "This should not be served"
+        body = "This should not be served {}".format(nothing)
 
 
     start_response('200 OK', [('Content-Type', contype)])
