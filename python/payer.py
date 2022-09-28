@@ -24,6 +24,7 @@ from uuid import uuid4
 import requests
 from enum import Enum
 from time import sleep
+from math import ceil
 #from util.moneropooldb import db 
 from util.rpc import wallet_get_tx_id, wallet_get_balance
 import functools
@@ -35,10 +36,10 @@ config_options =  parse_config(cli_options())
 r = redis.Redis(port=config_options['redis_port'])
 
 WALLET_PORT = config_options['wallet_rpc']
-THRESHOLD = int(0.005 * 1e12)
+THRESHOLD = int(0.003 * 1e12)
 #DATA_DIR = "/tmp/testbuild/data-dir"
 PAYOUT_DIR = "/home/monero/payout_dir"
-DRY_RUN = False
+DRY_RUN = True
 EXCLUDE_LIST = []
 
 
@@ -265,7 +266,7 @@ if __name__ == "__main__":
     unspent = wb['result']['per_subaddress'][0]['num_unspent_outputs']
 
     all_txs = []
-    for i in range(int(len(to_pay)/15)+1):
+    for i in range(ceil(len(to_pay)/15)):
         tx = Transaction()
         first = True
 
