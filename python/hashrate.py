@@ -17,14 +17,12 @@
 # */
 
 import redis
-import json
 from math import floor
 from time import time
 
 r = redis.Redis()
 
-start = int(time() * 1000)
-
+start = floor(time() * 1000)
 
 def determine_hr(shares, start_time):
     buckets = {
@@ -68,14 +66,12 @@ def main():
     }        
     for key in keys:
         userkey = str(key[2:], 'utf-8')
-        print("{}\n".format(userkey))
         shares = get_shares(userkey)
         overall_hr = determine_hr(shares, start)
+        r.json().set("h_{}".format(userkey), ".", overall_hr)
         for k in overall_hr.keys():
             super_overall_hr[k] += overall_hr[k]
-        print(json.dumps(overall_hr, indent=True))
-    print("Superoverall\n")
-    print(json.dumps(super_overall_hr, indent=True))
+    r.json().set("h_super", ".", super_overall_hr)
 
 if __name__ == "__main__":
     main()

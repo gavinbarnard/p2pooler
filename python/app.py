@@ -50,6 +50,9 @@ def json_generic_response(generic_item):
     body = json.dumps(generic_item, indent=True)
     return contype, body
 
+def get_hr_wallet2(wallet):
+    hr = r.json().get("h_{}".format(wallet))
+    return hr
 
 def get_shares(wallet=None):
     share_count = 0
@@ -123,7 +126,12 @@ def json_stats_response(wallet=None):
     if wallet:
         miners = get_miners(config_items['p2pooler_rpc'],config_items['p2pooler_token'])
         if wallet in miners.keys():
-            miner_hr = get_hr_wallet(config_items['p2pooler_rpc'],config_items['p2pooler_token'], wallet)
+            #miner_hr = get_hr_wallet(config_items['p2pooler_rpc'],config_items['p2pooler_token'], wallet)
+            hr = get_hr_wallet2(wallet)
+            if hr:
+                miner_hr = hr['300']
+            else:
+                miner_hr = 0
             worker_count = len(miners[wallet]['rigs'])
             miner_share = get_shares(wallet)
     stat_array = {
