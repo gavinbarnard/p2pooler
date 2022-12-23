@@ -21,4 +21,4 @@ from .cookiecutter import cookiecutter
 from .p2pool_stats import get_stat
 from .p2pooler import get_miners, get_hr_wallet, get_summary, get_workers, get_workers_by_wa
 from .rpc import wallet_get_balance, wallet_get_pending_out_failed_tx, wallet_get_transfers_in, wallet_get_transfers_out, wallet_get_tx_id, monerod_get_block, monerod_get_height, monerod_get_info
-from .validator import validate_address
+from .validator import validate_address, is_integrated

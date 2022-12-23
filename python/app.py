@@ -123,7 +123,9 @@ def json_stats_response(wallet=None):
         miner_bal = int(bal) / 1e12
     else:
         miner_bal = 0
+    integrated = False
     if wallet:
+        integrated = is_integrated(wallet)
         miners = get_miners(config_items['p2pooler_rpc'],config_items['p2pooler_token'])
         if wallet in miners.keys():
             #miner_hr = get_hr_wallet(config_items['p2pooler_rpc'],config_items['p2pooler_token'], wallet)
@@ -134,6 +136,7 @@ def json_stats_response(wallet=None):
                 miner_hr = 0
             worker_count = len(miners[wallet]['rigs'])
             miner_share = get_shares(wallet)
+        
     stat_array = {
         "pool_hashrate": p2local['hashrate_15m'],
         "p2pool_hashrate": p2pool['pool_statistics']['hashRate'],
@@ -154,7 +157,8 @@ def json_stats_response(wallet=None):
         "miner_hashrate": miner_hr,
         "miner_balance": miner_bal,
         "miner_share": miner_share,
-        "worker_count": worker_count
+        "worker_count": worker_count,
+        "integrated": integrated
     }
     return json_generic_response(stat_array)
 

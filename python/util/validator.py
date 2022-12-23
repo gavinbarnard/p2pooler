@@ -16,7 +16,13 @@
 # *   along with this program. If not, see <http://www.gnu.org/licenses/>.
 # */
 
-from monero.address import address
+from monero.address import address, IntegratedAddress, SubAddress, Address
+
+def is_integrated(test_address):
+    a = address(test_address)
+    if type(a) == IntegratedAddress:
+        return True
+    return False
 
 def validate_address(test_address):
     try:
@@ -30,4 +36,6 @@ if __name__ == "__main__":
     assert validate_address("41jyth3Xv8vJPTRBPNXfLJ29jo2do8aC2CPXXeCNHCFRjjNhZ1GB2HETntXWAJqgr2Y9my5XTanKKWFzRZG8scX13AUNYWq") == True
     assert validate_address("donkey_balls") == False
     assert validate_address(None) == False
+    assert is_integrated("4GdoN7NCTi8a5gZug7PrwZNKjvHFmKeV11L6pNJPgj5QNEHsN6eeX3DaAQFwZ1ufD4LYCZKArktt113W7QjWvQ7CW86FNFap1nBMHne6V2") == True
+    assert is_integrated("41jyth3Xv8vJPTRBPNXfLJ29jo2do8aC2CPXXeCNHCFRjjNhZ1GB2HETntXWAJqgr2Y9my5XTanKKWFzRZG8scX13AUNYWq") == False
     print("finish tests without assertion")

@@ -109,6 +109,7 @@
 				</td>
 		    </tr>
         </table>
+	<div id="integ_warning"></div>
 	<div>Connected Rigs: </div><div id="rig_list"></div><br/>
 	<small><a target="_blank" class="alight" href="https://discord.gg/kTH5a93CMQ">Please join the pool discord</a></br>
 	<small><a target="_blank" class="alight" href="https://www.reddit.com/r/pool_aterx_com">Pool subreddit</a></small><br/>
@@ -573,6 +574,12 @@ xhr.onload = function()
 		else
 			el.innerHTML = stats[e];
 	}
+	if (stats["integrated"]) {
+		var iwarn = document.getElementById("integ_warning")
+		iwarn.innerHTML = "<H1><font color=red>WARNING!! You are mining to the pool with an integrated address, this address type does not support bulk payments, and it's payout threshold is 1 XMR.  Please connect with a SubAddress or Main Address to take part in the lower threshold payouts.   Join the discord for more options.</font></H1>"
+	}
+	
+
 };
 
 wf.onblur = function(e)

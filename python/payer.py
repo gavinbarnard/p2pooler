@@ -31,6 +31,7 @@ import functools
 
 
 from util.config import cli_options, parse_config
+from util.validator import is_integrated
 
 config_options =  parse_config(cli_options())
 r = redis.Redis(port=config_options['redis_port'])
@@ -248,7 +249,7 @@ if __name__ == "__main__":
         )
     to_pay = []
     for wallet in wallet_balances:
-        if int(wallet['amount']) > THRESHOLD and wallet['address'] not in EXCLUDE_LIST:
+        if int(wallet['amount']) > THRESHOLD and wallet['address'] not in EXCLUDE_LIST and is_integrated(wallet['address']) == False:
             to_pay.append(wallet)
         else:
             print("skipping {} balance {:.11f}".format(wallet['address'], wallet['amount']/1e12))
