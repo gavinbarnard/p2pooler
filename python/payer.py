@@ -250,7 +250,7 @@ if __name__ == "__main__":
         )
     to_pay = []
     for wallet in wallet_balances:
-        if (int(wallet['amount']) > THRESHOLD and wallet['address'] not in EXCLUDE_LIST) or (wallet['address'] in OVERRIDE_LIST and int(wallet['amount']) > 0) and is_integrated(wallet['address']) == False:
+        if (int(wallet['amount']) > THRESHOLD and wallet['address'] not in EXCLUDE_LIST and is_integrated(wallet['address']) == False) or (wallet['address'] in OVERRIDE_LIST and int(wallet['amount']) > 0 and is_integrated(wallet['address']) == False):
             to_pay.append(wallet)
         else:
             print("skipping {} balance {:.11f}".format(wallet['address'], wallet['amount']/1e12))
