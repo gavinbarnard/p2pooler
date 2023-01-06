@@ -64,7 +64,9 @@ def wallet_get_transfers_out(rpc_port, site="localhost"):
     return out_dict[:30]
 
 
-def wallet_get_transfers_in(rpc_port, site="localhost"):
+def wallet_get_transfers_in(rpc_port, site="localhost", scan=0):
+    if scan > 0: filter_by_height = True
+    else: filter_by_height = False
     data = {
         "jsonrpc":"2.0",
         "id":"0",
@@ -74,7 +76,9 @@ def wallet_get_transfers_in(rpc_port, site="localhost"):
             "out": False,
             "pending": False,
             "failed": False,
-            "pool": False
+            "pool": False,
+            "filter_by_height": filter_by_height,
+            "min_height": scan
         }
     }
     r = requests.get("http://{}:{}/json_rpc".format(site, rpc_port), data=json.dumps(data))

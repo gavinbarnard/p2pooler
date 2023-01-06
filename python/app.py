@@ -163,8 +163,10 @@ def json_stats_response(wallet=None):
     return json_generic_response(stat_array)
 
 def get_mined():
+    current_height = monerod_get_info(config_items['monero_rpc'])['height']
+    scan_height = current_height - 720*30
     mined_blocks = []
-    txs = wallet_get_transfers_in(config_items['wallet_rpc'])
+    txs = wallet_get_transfers_in(config_items['wallet_rpc'], scan = scan_height)
     for tx in txs:
         if tx['type'] == "block":
             mblock = monerod_get_block(config_items['monero_rpc'], tx['height'], config_items['monero_ip'])
