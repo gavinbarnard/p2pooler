@@ -25,18 +25,18 @@
 #ifndef P2POOLER_VERSION_H
 #define P2POOLER_H
 
-#define APP_ID        "p2pooler"
-#define APP_NAME      "p2pooler"
-#define APP_DESC      "p2pooler a pool that sits ontop of a p2pool chain"
-#define APP_VERSION   "0.1"
-#define APP_DOMAIN    "pool.aterx.com"
-#define APP_SITE      "pool.aterx.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2025 xmrig.com Copyright (C) 2022-2025 aterx.com"
-#define APP_KIND      "pool"
+#define APP_ID        "xmrig-proxy"
+#define APP_NAME      "xmrig-proxy"
+#define APP_DESC      "XMRig Stratum proxy"
+#define APP_VERSION   "6.19.1-dev"
+#define APP_DOMAIN    "xmrig.com"
+#define APP_SITE      "www.xmrig.com"
+#define APP_COPYRIGHT "Copyright (C) 2016-2023 xmrig.com"
+#define APP_KIND      "proxy"
 
-#define APP_VER_MAJOR  0
-#define APP_VER_MINOR  1
-#define APP_VER_PATCH  0
+#define APP_VER_MAJOR  6
+#define APP_VER_MINOR  19
+#define APP_VER_PATCH  1
 
 #ifdef _MSC_VER
 #   if (_MSC_VER >= 1930)
