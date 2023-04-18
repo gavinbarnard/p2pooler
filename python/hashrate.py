@@ -71,6 +71,11 @@ def main():
         r.json().set("h_{}".format(userkey), ".", overall_hr)
         for k in overall_hr.keys():
             super_overall_hr[k] += overall_hr[k]
+    h_keys = r.keys("h_*")
+    for key in h_keys:
+        userkey = str(key[2:], 'utf-8')
+        if not get_shares(userkey) and userkey !="super":
+            r.delete(key)
     r.json().set("h_super", ".", super_overall_hr)
 
 if __name__ == "__main__":

@@ -82,7 +82,7 @@
 			<tr><td>P2Pool HR: </td><td id="p2pool_hashrate"</td></tr>
             <tr><td>Network HR: </td><td id="network_hashrate"></td></tr>
             <tr><td>Network height: </td><td id="network_height"></td></tr>
-            <tr><td>Blocks found: </td><td id="pool_blocks_found"></td></tr>
+            <tr><td>Blocks found in last 30 days: </td><td id="pool_blocks_found"></td></tr>
             <tr><td>Last block found: </td><td id="last_block_found"></td></tr>
             <tr><td>Round Stats: </td><td id="round_hr"></td></tr>
             <tr><td>P2Pool Round: </td><td id="p2pool_round"></td></tr>
@@ -91,8 +91,8 @@
 	    <tr><td>Payment threshold: </td><td id="payment_threshold"></td></tr>
 	    <tr><td>Payout schedule: </td><td>Every Sunday at 11:00am Eastern</td></tr>
             <tr><td><a class="alight" href="#poolfee">Pool fee:</a> </td><td id="pool_fee"></td></tr>
-			<tr><td>Pool Unencrypted port: </td><td id="unencrypted_port">4245, 4246</td></tr>
-            <tr><td>Pool SSL port: </td><td>4244</td></tr>
+	    <tr><td>Pool Unencrypted port: </td><td id="unencrypted_port">pool.aterx.com:4246<br/>pool.aterx.com:4245</td></tr>
+            <tr><td>Pool SSL port: </td><td>pool.aterx.com:4244</td></tr>
             <tr><td>Miners connected: </td><td id="connected_miners"></td></tr>
             <tr class="miner"><td>Your HR: </td><td id="miner_hashrate"></td></tr>
             <tr class="miner"><td>Balance due: </td><td id="miner_balance"></td></tr>
@@ -137,6 +137,7 @@
 			</tr>
 	</table>
 	<div id="infomessage">
+		<font color=red>Due to DDOS Attacks, the website is not fully operational, please report any issues in discord</font></br>
 		<a target="_blank" class="alight" href="https://discord.gg/kTH5a93CMQ">Please join the pool discord</a></br>
 		Please report any issues in the discord</br>
 		<font color=red>!! Weekly maintenance and server restarts will begin every Sunday@11pm ET(UTC -5:00 / -4:00) - !!</font></header></br>
@@ -157,20 +158,20 @@
 	<li>Run in an Administrative Command prompt, or with sudo</li>
 	<li>On initial launch it may say that it is enabled huge page but that a reboot is needed, it is highly recommended to reboot to get a better hashrate</li>
 	<li>Example CLI:</li>
-	<li>xmrig -o pool.aterx.com:4244 --tls --keepalive -u &lt;walletid&gt; --algo rx/0 --rig-id &lt;CustomRigIdentifier&gt;</li>
+	<li>xmrig -o pool.aterx.com:4246 --keepalive -u &lt;walletid&gt; --algo rx/0 --rig-id &lt;CustomRigIdentifier&gt;</li>
 	<li>Example Pools section of config.json:</li>
 	<li><pre>
 "pools": [
      {
             "algo": "rx/0",
             "coin": null,
-            "url": "pool.aterx.com:4244",
+            "url": "pool.aterx.com:4246",
             "user": "&lt;wallet&gt;",
             "pass": "",
 	    	"rig-id": "&lt;custom-rig-id&gt;",
             "keepalive": true,
             "enabled": true,
-            "tls": true,
+            "tls": false,
             "tls-fingerprint": null,
             "daemon": false,
             "socks5": null,
@@ -192,6 +193,7 @@
 	<small>Want a cloud hosting provider cheaper than AWS/Azure/GCP try <a target="_blank" class="alight" href="https://m.do.co/c/00c5ff3f406e">Digital Ocean</a> you start with a $100/60day credit.</small></br>
 	<small><a href='https://hiveos.farm?ref=612568' class="alight">HiveOS Managed Mining Platform</a><br/></small>
 	<small><a href='https://www.miningrigrentals.com/register?ref=2634505' class="alight">Mining Rig Rentals</a> - Rent Hash Power! Use the unencryptd port!</br></small>
+	<small><a href='https://stormwall.pro/my/aff.php?aff=761' class="alight">Stormwall DDoS Protection</a></small><br/>
 	<small>Using any of the above referral links helps keep the pool operational<br/></small>
 	<small>By using this site you accept two cookies, one to track your wallet(wa), and one to track dark mode(dark_mode)</small>
 <script>
@@ -243,13 +245,13 @@ xmlhttp_block.onreadystatechange = function()
 		updateBlocks(block_data);
 	}
 }
-xmlhttp.open("GET","/1/graph_stats.json", true);
+xmlhttp.open("GET","/pool/1/graph_stats.json", true);
 xmlhttp.send();
-xmlhttp_rig.open("GET","/1/workers", true);
+xmlhttp_rig.open("GET","/pool/1/workers", true);
 xmlhttp_rig.send();
-xmlhttp_block.open("GET","/1/blocks.all", true);
+xmlhttp_block.open("GET","/pool/1/blocks.all", true);
 xmlhttp_block.send();
-xmlhttp_payments.open("GET", "/1/payments.summary", true);
+xmlhttp_payments.open("GET", "/pool/1/payments.summary", true);
 xmlhttp_payments.send();
 function updatePayments(payment_data)
 {
@@ -313,7 +315,7 @@ function updateBlocks(block_data)
 function togglePayout()
 {
 	ptype.innerHTML = "pool";
-	xmlhttp_payments.open("GET", "/1/payments.summary",true);
+	xmlhttp_payments.open("GET", "/pool/1/payments.summary",true);
 	xmlhttp_payments.send();
 }
 
@@ -345,7 +347,7 @@ function toggleDark()
 
 	}
 
-	xmlhttp.open("GET","/1/graph_stats.json", true);
+	xmlhttp.open("GET","/pool/1/graph_stats.json", true);
 	xmlhttp.send();
 	var d = new Date();
 	d.setTime(d.getTime() + (86400 * 365 * 1000));
@@ -622,15 +624,15 @@ if (jar.dark_mode && (jar.dark_mode == 0 || jar.dark_mode == 1))
 }
 	var get_stats = function()
 	{
-		xhr.open("GET", "/1/stats");
+		xhr.open("GET", "/pool/1/stats");
 		xhr.send(null);
-		xmlhttp.open("GET", "/1/graph_stats.json", true);
+		xmlhttp.open("GET", "/pool/1/graph_stats.json", true);
 		xmlhttp.send(null);
-		xmlhttp_block.open("GET", "/1/blocks.all", true);
+		xmlhttp_block.open("GET", "/pool/1/blocks.all", true);
 		xmlhttp_block.send();
-		xmlhttp_rig.open("GET","/1/workers", true);
+		xmlhttp_rig.open("GET","/pool/1/workers", true);
 		xmlhttp_rig.send();
-		xmlhttp_payments.open("GET", "/1/payments.summary",true);
+		xmlhttp_payments.open("GET", "/pool/1/payments.summary",true);
 		xmlhttp_payments.send();
 	};
 	setInterval(get_stats, 30000);

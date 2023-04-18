@@ -80,21 +80,30 @@ class HashShell(Cmd):
         hr = _get_all_hr()
         hr_s = sorted(hr, key=cmp_to_key(hr5_sort), reverse=True)
         for i in range(5):
-            print(f"Wallet:\t{hr_s[i]['wallet']}\t Hashrate: {hr_s[i]['hr']['300']}")
+            try:
+                print(f"Wallet:\t{hr_s[i]['wallet']}\t Hashrate: {hr_s[i]['hr']['300']}")
+            except IndexError:
+                return
 
     def do_top_table_10m(self, arg):
         'Get a list of top hashers in last 10m'
         hr = _get_all_hr()
         hr_s = sorted(hr, key=cmp_to_key(hr10_sort), reverse=True)
         for i in range(5):
-            print(f"Wallet:\t{hr_s[i]['wallet']}\t Hashrate: {hr_s[i]['hr']['600']}")
+            try:
+                print(f"Wallet:\t{hr_s[i]['wallet']}\t Hashrate: {hr_s[i]['hr']['600']}")
+            except IndexError:
+                return
 
     def do_top_table_30m(self, arg):
         'Get a list of top hashers in last 30m'
         hr = _get_all_hr()
         hr_s = sorted(hr, key=cmp_to_key(hr30_sort), reverse=True)
         for i in range(5):
-            print(f"Wallet:\t{hr_s[i]['wallet']}\t Hashrate: {hr_s[i]['hr']['1800']}")
+            try:
+                print(f"Wallet:\t{hr_s[i]['wallet']}\t Hashrate: {hr_s[i]['hr']['1800']}")
+            except IndexError:
+                return
 
     def do_exit(self, arg):
         'Exits the cli'
