@@ -19,7 +19,7 @@
 import json
 from os.path import exists
 
-STAT_FILES = ['network', 'local', 'pool']
+STAT_FILES = ['network', 'pool']
 
 def get_stat(stat_dir, stat_type):
     resp = None
@@ -27,6 +27,8 @@ def get_stat(stat_dir, stat_type):
         filename = "{}/stats_mod".format(stat_dir)
     else:
         if stat_type in STAT_FILES:
+            filename = "{}/{}/stats".format(stat_dir, stat_type)
+        elif stat_type == "local":
             filename = "{}/{}/stratum".format(stat_dir, stat_type)
     if exists(filename):
         with open(filename, 'r') as fh:
