@@ -175,14 +175,15 @@ def get_mined():
                 status = "LOCKED"
             else:
                 status = "UNLOCKED"
-            mined_blocks.append({"height": tx['height'],
-                    "hash": bh['miner_tx_hash'],
-                    "status": status,
-                    "difficulty": bh['difficulty'],
-                    "breward": bh['reward'],
-                    "reward": tx['amount'],
-                    "timestamp": bh['timestamp'],
-                    "dt": bh['timestamp']})
+            if tx['amount'] > 0:
+                mined_blocks.append({"height": tx['height'],
+                        "hash": bh['miner_tx_hash'],
+                        "status": status,
+                        "difficulty": bh['difficulty'],
+                        "breward": bh['reward'],
+                        "reward": tx['amount'],
+                        "timestamp": bh['timestamp'],
+                        "dt": bh['timestamp']})
     return mined_blocks
 
 def data_gif():
