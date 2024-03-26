@@ -1,12 +1,7 @@
 /* XMRig
-<<<<<<< HEAD
- * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  * Copyright (c) 2022      grb         <https://github.com/gavinbarnard>
-=======
- * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
->>>>>>> 8b937da (v6.19.0-dev)
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,10 +23,10 @@
 #define APP_ID        "xmrig-proxy"
 #define APP_NAME      "xmrig-proxy"
 #define APP_DESC      "XMRig Stratum proxy"
-#define APP_VERSION   "6.21.1-dev"
+#define APP_VERSION   "6.21.1"
 #define APP_DOMAIN    "xmrig.com"
 #define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2023 xmrig.com"
+#define APP_COPYRIGHT "Copyright (C) 2016-2024 xmrig.com"
 #define APP_KIND      "proxy"
 
 #define APP_VER_MAJOR  6
