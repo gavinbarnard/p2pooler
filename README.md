@@ -125,7 +125,7 @@ Misc:
 
 ## Donations
 
-Default donation fee is 2% but can be reduced to 1% or disabled via `donate-level` option. Donation fee applies only if you use more than 256 miners.
+Default donation fee is 2%, but can be reduced to 1% or disabled via `donate-level` option. Donation fee applies only if you use more than 256 miners.
 
 * XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
 
