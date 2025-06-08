@@ -9,9 +9,10 @@ option(WITH_TLS             "Enable OpenSSL support"  ON)
 option(WITH_ENV_VARS        "Enable environment variables support in config file" ON)
 
 
-include (CheckIncludeFile)
-include (cmake/os.cmake)
-include (src/base/base.cmake)
+include(CheckIncludeFile)
+include(cmake/cpu.cmake)
+include(cmake/os.cmake)
+include(src/base/base.cmake)
 
 
 set(HEADERS
