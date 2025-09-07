@@ -104,12 +104,19 @@ def get_payment(wallet=None):
     sorted_response = sorted(response, key=itemgetter('height'), reverse=True)
     return sorted_response[0:30]
 
+def get_pool_shares(stats_dir):
+    with open(f'{stats_dir}/shares.json', 'r') as fh:
+        data = fh.read()
+    return json.loads(data)
+
 def json_stats_response(wallet=None):
     p2local = get_stat(config_items['p2pool_stats'], "local")
     p2network = get_stat(config_items['p2pool_stats'], "network")
     p2pool = get_stat(config_items['p2pool_stats'], "pool")
+    est_reward = round(p2network['reward'] * (p2local['block_reward_share_percent']/100), 12)
     p2stats_mod = get_stat(config_items['p2pool_stats'], "stats_mod")
     info = monerod_get_info(config_items['monero_rpc'])
+    our_pool_shares = get_pool_shares(config_items['stats_dir'])
     p2pooler_sum = get_summary(config_items['p2pooler_rpc'], config_items['p2pooler_token'])
     blocks = get_mined()
     p2_round = round(p2stats_mod['pool']['roundHashes'] / p2network['difficulty'] * 100, 2)
@@ -144,8 +151,8 @@ def json_stats_response(wallet=None):
         "network_difficulty": p2network['difficulty'],
         "round_hr": "Current effort: {}%<br/>Average Effort: {}%".format(p2local['current_effort'], p2local['average_effort']),
         "p2pool_round": "{}%".format(p2_round),
-        "p2pool_reward": p2local['reward'] / 1e12,
-        "p2pool_shares": p2local['p2pool_shares'],
+        "p2pool_reward": est_reward / 1e12, ## FIX ME p2local['reward'] / 1e12,
+        "p2pool_shares": our_pool_shares['shares'], ## FIX ME p2local['p2pool_shares'],
         "network_height": info['height'],
         "last_block_found": blocks[0]['height'],
         "pool_blocks_found": len(blocks),
@@ -259,7 +266,7 @@ def json_graph_stats():
     highest_n = 0
     highest_p2r = 0
     lowest_p = -1   
-    files = get_files(config_items['stats_dir'] + "/*.json")
+    files = get_files(config_items['stats_dir'] + "/latest*.json")
     unused_var_zero, block_json = json_blocks_all_response()
     blocks = json.loads(block_json)
     now = int(datetime.now().timestamp())
@@ -359,7 +366,12 @@ def json_payments_summary(wallet=None):
         else:
             bb['miner_count'] = 'Unknown'
         bb['timestamp'] = payment['timestamp']
-        response.append(bb)
+        if len(response) > 0 and response[-1]['timestamp'] == bb['timestamp']:
+            response[-1]['reward'] += bb['reward']
+            if type(response[-1]['miner_count']) == int and type(bb['miner_count']) == int:
+               response[-1]['miner_count'] += bb['miner_count'] 
+        else:
+            response.append(bb)
     if wallet:
         response.append("- - -")
         response += get_splits(wallet)
@@ -413,6 +425,8 @@ def read_files(files):
 
 def application(environ, start_response):
     request_uri = environ['REQUEST_URI']
+    if request_uri[0:6] == "/pool/":
+        request_uri = request_uri[5:]
     if 'HTTP_COOKIE' in environ.keys():
         cookies = cookiecutter(environ['HTTP_COOKIE'])
         if 'wa' in cookies:
