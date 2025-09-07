@@ -78,27 +78,29 @@
 			    <td id=stat_block width=50%>
 		    <header>Pool and Miner Stats</header>
         <table>
-            <tr><td>Pool HR: </td><td id="pool_hashrate"></td></tr>
-			<tr><td>P2Pool HR: </td><td id="p2pool_hashrate"</td></tr>
-            <tr><td>Network HR: </td><td id="network_hashrate"></td></tr>
-            <tr><td>Network height: </td><td id="network_height"></td></tr>
-            <tr><td>Blocks found in last 30 days: </td><td id="pool_blocks_found"></td></tr>
-            <tr><td>Last block found: </td><td id="last_block_found"></td></tr>
-            <tr><td>Round Stats: </td><td id="round_hr"></td></tr>
-            <tr><td>P2Pool Round: </td><td id="p2pool_round"></td></tr>
-			<tr><td>P2Pool Shares PPLNS: </td><td id="p2pool_shares"></td></tr>
-			<tr><td>P2Pool Estimated reward: </td><td id="p2pool_reward"></td></tr>
-	    <tr><td>Payment threshold: </td><td id="payment_threshold"></td></tr>
-	    <tr><td>Payout schedule: </td><td>Every Sunday at 11:00am Eastern</td></tr>
-            <tr><td><a class="alight" href="#poolfee">Pool fee:</a> </td><td id="pool_fee"></td></tr>
-	    <tr><td>Pool Unencrypted port: </td><td id="unencrypted_port">pool.aterx.com:4246<br/>pool.aterx.com:4245</td></tr>
-            <tr><td>Pool SSL port: </td><td>pool.aterx.com:4244</td></tr>
-            <tr><td>Miners connected: </td><td id="connected_miners"></td></tr>
-            <tr class="miner"><td>Your HR: </td><td id="miner_hashrate"></td></tr>
-            <tr class="miner"><td>Balance due: </td><td id="miner_balance"></td></tr>
-			<tr class="miner"><td>Miner shares in last 18H:</td><td id="miner_share"></td></tr>
-	    <tr class="miner"><td>Worker Count: </td><td id="worker_count"></td></tr>
-	    <tr><td>Miner address: </td><td id="address" contenteditable="true"></td></tr>
+            <tr><td>Pool HR: </td><td colspan=2 id="pool_hashrate"></td></tr>
+			<tr><td>P2Pool HR: </td><td colspan=2 id="p2pool_hashrate"</td></tr>
+            <tr><td>Network HR: </td><td colspan=2  id="network_hashrate"></td></tr>
+            <tr><td>Network height: </td><td colspan=2 id="network_height"></td></tr>
+            <tr><td>Blocks found in last 30 days: </td><td colspan=2 id="pool_blocks_found"></td></tr>
+            <tr><td>Last block found: </td><td colspan=2 id="last_block_found"></td></tr>
+            <tr><td>Round Stats: </td><td colspan=2 id="round_hr"></td></tr>
+            <tr><td>P2Pool Round: </td><td colspan=2 id="p2pool_round"></td></tr>
+			<tr><td>P2Pool Shares: </td><td colspan=2  id="p2pool_shares"></td></tr>
+			<tr><td>P2Pool Uncles/Orphans</td><td id="p2pool_uncles"></td><td id="p2pool_orphans"></td></tr>
+			<tr><td>P2Pool Shares Window: </td><td colspan=2 id="p2pool_shares_window"></td></tr>
+			<tr><td>P2Pool Estimated reward: </td><td colspan=2 id="p2pool_reward"></td></tr>
+	    <tr><td>Payment threshold: </td><td colspan=2  id="payment_threshold"></td></tr>
+	    <tr><td>Payout schedule: </td><td colspan=2 >Every Sunday at 11:00am Eastern</td></tr>
+            <tr><td><a class="alight" href="#poolfee">Pool fee:</a> </td><td colspan=2  id="pool_fee"></td></tr>
+	    <tr><td>Pool Unencrypted port: </td><td id="unencrypted_port" colspan=2 >pool.aterx.com:4246<br/>pool.aterx.com:4245</td></tr>
+            <tr><td>Pool SSL port: </td><td colspan=2>pool.aterx.com:4244</td></tr>
+            <tr><td>Miners connected: </td><td colspan=2  id="connected_miners"></td></tr>
+            <tr class="miner"><td>Your HR: </td><td colspan=2  id="miner_hashrate"></td></tr>
+            <tr class="miner"><td>Balance due: </td><td colspan=2  id="miner_balance"></td></tr>
+			<tr class="miner"><td>Miner shares in last 18H:</td><td colspan=2 id="miner_share"></td></tr>
+	    <tr class="miner"><td>Worker Count: </td><td colspan=2 id="worker_count"></td></tr>
+	    <tr><td>Miner address: </td><td colspan=2 id="address" contenteditable="true"></td></tr>
 	    </table>
 			    </td>
 			    <td width=50%>

@@ -24,3 +24,4 @@ source ../venv/bin/activate
 python3 p2pool_console_status.py
 sleep .25
 grep "Your shares               = " $logfile | awk '{print "{\"shares\": " $4 ",\"uncles\": " substr($6,3) ",\"orphans\": " $8"}"'} | tail -1 > $STATS_DIR/shares.json
+grep "Your shares po" $logfile | awk '{print $5}' | tail -1 > $STATS_DIR/shares_window

@@ -109,15 +109,21 @@ def get_pool_shares(stats_dir):
         data = fh.read()
     return json.loads(data)
 
+def get_pool_shares_window(stats_dir):
+    with open(f'{stats_dir}/shares_window', 'r') as fh:
+        data = fh.read()
+    return data
+
 def json_stats_response(wallet=None):
     p2local = get_stat(config_items['p2pool_stats'], "local")
     p2network = get_stat(config_items['p2pool_stats'], "network")
     p2pool = get_stat(config_items['p2pool_stats'], "pool")
-    est_reward = round(p2network['reward'] * (p2local['block_reward_share_percent']/100), 12)
+    est_reward = round(p2network['reward'] * (p2local['block_reward_share_percent']/100) / 1e12, 12)
     p2stats_mod = get_stat(config_items['p2pool_stats'], "stats_mod")
     info = monerod_get_info(config_items['monero_rpc'])
     our_pool_shares = get_pool_shares(config_items['stats_dir'])
     p2pooler_sum = get_summary(config_items['p2pooler_rpc'], config_items['p2pooler_token'])
+    shares_window = get_pool_shares_window(config_items['stats_dir'])
     blocks = get_mined()
     p2_round = round(p2stats_mod['pool']['roundHashes'] / p2network['difficulty'] * 100, 2)
     miner_hr = 0
@@ -151,8 +157,11 @@ def json_stats_response(wallet=None):
         "network_difficulty": p2network['difficulty'],
         "round_hr": "Current effort: {}%<br/>Average Effort: {}%".format(p2local['current_effort'], p2local['average_effort']),
         "p2pool_round": "{}%".format(p2_round),
-        "p2pool_reward": est_reward / 1e12, ## FIX ME p2local['reward'] / 1e12,
+        "p2pool_reward": est_reward, ## FIX ME p2local['reward'] / 1e12,
         "p2pool_shares": our_pool_shares['shares'], ## FIX ME p2local['p2pool_shares'],
+        "p2pool_uncles": our_pool_shares['uncles'],
+        "p2pool_orphans": our_pool_shares['orphans'],
+        "p2pool_shares_window": shares_window,
         "network_height": info['height'],
         "last_block_found": blocks[0]['height'],
         "pool_blocks_found": len(blocks),
