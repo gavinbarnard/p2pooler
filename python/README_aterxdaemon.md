@@ -20,7 +20,7 @@ The Aterx Daemon replaces the individual cronjobs that were running these three 
 ## Requirements
 
 - Python 3.10+
-- Redis (for data storage)
+- Redis-stack-server (for data storage) without stack-server we're missing the JSON and Search modules.
 - Required Python packages: `redis`, `monero` (automatically installed)
 
 ## Installation
