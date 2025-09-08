@@ -245,7 +245,7 @@ void xmrig::Recorder::accept(const AcceptEvent *event)
         *plusPos = '\0';
     }  
 
-    std::strncpy(final_user, sanitized_user, sizeof(final_user) - 1);
+    std::strncpy(final_user, buffer_user, sizeof(final_user) - 1);
     final_user[sizeof(final_user) - 1] = '\0';  // Ensure null termination 
     if (validateAddress(final_user))
     {
