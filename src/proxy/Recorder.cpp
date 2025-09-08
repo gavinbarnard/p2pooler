@@ -54,10 +54,7 @@ xmrig::Recorder::Recorder(Controller *controller) :
         } else {
             LOG_ERR("Redis connection error: Can't allocate redis context.");
         }
-    }    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockfd < 0) {
-        LOG_ERR("sockfd less than 0 %d", sockfd);
-    } 
+    }   
 }
 
 
