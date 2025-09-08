@@ -32,10 +32,7 @@
 #include "proxy/events/AcceptEvent.h"
 #include "proxy/Miner.h"
 #include "base/tools/Chrono.h"
-<<<<<<< HEAD
 #include <hiredis/hiredis.h>
-=======
->>>>>>> 786c97d (many things completed)
 
 #include <cinttypes>
 
@@ -44,20 +41,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-<<<<<<< HEAD
-#include <cstring>
-#include <string>
-=======
->>>>>>> 786c97d (many things completed)
 
 xmrig::Recorder::Recorder(Controller *controller) :
     m_controller(controller)
 {
-<<<<<<< HEAD
-    //sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    //if (sockfd < 0) {
-    //    LOG_ERR("sockfd less than 0 %d", sockfd);
-    //}
     rdCtx = redisConnect("localhost", 6379);  // FIX ME should load this from a cli option Review -> still deffered 
     if (rdCtx == NULL || rdCtx->err) {
         if (rdCtx) {
@@ -67,13 +54,10 @@ xmrig::Recorder::Recorder(Controller *controller) :
         } else {
             LOG_ERR("Redis connection error: Can't allocate redis context.");
         }
-    }
-=======
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    }    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
         LOG_ERR("sockfd less than 0 %d", sockfd);
     } 
->>>>>>> 786c97d (many things completed)
 }
 
 
@@ -109,6 +93,7 @@ void xmrig::Recorder::onRejectedEvent(IEvent *event)
         break;
     }
 }
+
 
 bool xmrig::Recorder::validateAddress(const char *s)
 {
@@ -234,6 +219,7 @@ void xmrig::Recorder::add_share_to_redis(const char *user, const u_int64_t ts, c
     }
 }
 
+
 void xmrig::Recorder::accept(const AcceptEvent *event)
 {
     if (event->isDonate() || event->isCustomDiff()) {
@@ -243,9 +229,6 @@ void xmrig::Recorder::accept(const AcceptEvent *event)
     const u_int64_t timestamp = Chrono::currentMSecsSinceEpoch();
     const u_int64_t diff = event->result.diff;
     //LOG_PPLNS("user=%s,ts=%" PRIu64",diff=%" PRIu64, (char*)user, timestamp, diff);
-
-    // new code to remove reliance on another outside daemon (receiver.py)
-    // and add into redis in this event
     char buffer_user[1024] = {0};
     char final_user[1024] = {0};
     size_t max_copy_length = sizeof(buffer_user) - 1; 
@@ -264,29 +247,7 @@ void xmrig::Recorder::accept(const AcceptEvent *event)
     {
         add_share_to_redis(final_user, timestamp, diff);
     }
-
-    /* Original code to send to receiver.py */
-    /*
     
-    struct hostent *server;
-    int portno = 6969;
-    struct sockaddr_in serv_addr;
-    server = gethostbyname("localhost");
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr, 
-    (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-    serv_addr.sin_port = htons(portno);
-    if (sockfd < 0) {
-        LOG_ERR("sockfd is dead %d", sockfd);
-    } else {
-        char message[1024] = {0};
-        sprintf(message,"{\"user\":\"%s\",\"ts\": %" PRIu64", \"diff\": %" PRIu64"}", (char*)user, timestamp, diff);
-        sendto(sockfd, message, strlen(message), 0, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
-    }
-    
-    */
-
 }
 
 void xmrig::Recorder::reject(const AcceptEvent *event)
