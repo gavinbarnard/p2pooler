@@ -51,7 +51,7 @@ xmrig::Recorder::Recorder(Controller *controller) :
     //if (sockfd < 0) {
     //    LOG_ERR("sockfd less than 0 %d", sockfd);
     //}
-    rdCtx = redisConnect("localhost", 6379);  // FIX ME should load this connection info from ~/.config/p2pooler-py.json 
+    rdCtx = redisConnect("localhost", 6379);  // FIX ME should load this from a cli option Review -> still deffered 
     if (rdCtx == NULL || rdCtx->err) {
         if (rdCtx) {
             LOG_ERR("Redis connection error: %s",  rdCtx->errstr);
@@ -87,7 +87,6 @@ void xmrig::Recorder::onRejectedEvent(IEvent *event)
     case IEvent::AcceptType:
         reject(static_cast<AcceptEvent*>(event));
         break;
-
     default:
         break;
     }
@@ -137,6 +136,18 @@ bool xmrig::Recorder::validateAddress(const char *s)
 
 void xmrig::Recorder::add_share_to_redis(const char *user, const u_int64_t ts, const u_int64_t diff) 
 {
+    /*
+    REDIS COMMANDS
+    
+    JSON.ARRAPPEND key path value
+
+    JSON.ARRAPPEND s_{user} $ 'json_string'
+    
+    JSON.SET key path value
+
+    JSON.SET s_{user} $ '[]'
+
+    */
     char share_key[1024];
     char json_str[512];
     redisReply *reply;
@@ -158,7 +169,6 @@ void xmrig::Recorder::add_share_to_redis(const char *user, const u_int64_t ts, c
     } 
     else if (reply->type == REDIS_REPLY_ERROR) 
     {
-        LOG_ERR("Potential Reply error");
         const char* errMsg = reply->str;
         if (strstr(errMsg, "could not perform this operation on a key that doesn't exist")) 
         {
@@ -178,7 +188,8 @@ void xmrig::Recorder::add_share_to_redis(const char *user, const u_int64_t ts, c
             } 
             else if (reply->type == REDIS_REPLY_ARRAY)
             {
-                LOG_ERR("Correctly appended after set");
+                LOG_PPLNS("Correctly appended after set");
+                LOG_PPLNS("share added user=%s, ts=%" PRIu64", diff=%" PRIu64, user, ts, diff);
             } 
             else 
             {
@@ -201,33 +212,25 @@ void xmrig::Recorder::accept(const AcceptEvent *event)
     const u_int64_t timestamp = Chrono::currentMSecsSinceEpoch();
     const u_int64_t diff = event->result.diff;
     //LOG_PPLNS("user=%s,ts=%" PRIu64",diff=%" PRIu64, (char*)user, timestamp, diff);
-    char buffer_user[1024] = {0x0};
-    char final_user[1024] = {0x0};
-    std::strcpy(buffer_user, og_user);
+
+    // new code to remove reliance on another outside daemon (receiver.py)
+    // and add into redis in this event
+    char buffer_user[1024] = {0};
+    char final_user[1024] = {0};
+    size_t max_copy_length = sizeof(buffer_user) - 1; 
+    std::strncpy(buffer_user, og_user, max_copy_length);
+    buffer_user[max_copy_length] = '\0';
+
     char* plusPos = std::strchr(buffer_user, '+');
     if (plusPos != nullptr) 
     {
         *plusPos = '\0';
     }
-    std::strcpy(final_user, buffer_user);
+    std::strncpy(final_user, buffer_user, strlen(buffer_user)); 
     if (validateAddress(final_user))
     {
         add_share_to_redis(final_user, timestamp, diff);
     }
-    /*
-    REDIS COMMANDS
-    
-    JSON.ARRAPPEND key path value
-
-    JSON.ARRAPPEND s_{user} $ 'json_string'
-    
-    JSON.SET key path value
-
-    JSON.SET s_{user} $ '[]'
-
-    */
-
-
 
     /* Original code to send to receiver.py */
     /*
