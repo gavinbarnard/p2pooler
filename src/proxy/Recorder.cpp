@@ -43,7 +43,6 @@
 #include <netdb.h>
 #include <cstring>
 #include <string>
-#include <mutex>
 
 xmrig::Recorder::Recorder(Controller *controller) :
     m_controller(controller)
@@ -167,7 +166,6 @@ void xmrig::Recorder::add_share_to_redis(const char *user, const u_int64_t ts, c
     int argc_set = 4;
     const size_t argv_arrappen_len[] = {strlen(JSON_ARRAPPEND), strlen(share_key), 1, strlen(json_str)};
     const size_t argv_set_len[] = {strlen(JSON_SET), strlen(share_key), 1, 2};
-    std::lock_guard<std::mutex> lock(m_redis_mutex);
     reply = (redisReply *) redisCommandArgv(rdCtx, argc_arrappend, argv_arrappend, argv_arrappen_len);
     if (reply == NULL)
     {
@@ -206,6 +204,9 @@ void xmrig::Recorder::add_share_to_redis(const char *user, const u_int64_t ts, c
         LOG_PPLNS("share added user=%s, ts=%" PRIu64", diff=%" PRIu64, user, ts, diff);
     } else {
         LOG_ERR("share failed user=%s, ts=%" PRIu64", diff=%" PRIu64, user, ts, diff);
+    }
+    if (reply) { // stop leaking handles
+        freeReplyObject(reply);
     }
 }
 

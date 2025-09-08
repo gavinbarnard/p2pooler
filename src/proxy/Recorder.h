@@ -31,7 +31,6 @@
 #include "proxy/interfaces/IEventListener.h"
 #include <hiredis/hiredis.h>
 #include <cinttypes>
-#include <mutex>
 
 namespace xmrig {
 
@@ -60,7 +59,6 @@ private:
     Controller *m_controller;
     //int sockfd;
     redisContext *rdCtx;
-    std::mutex m_redis_mutex;
 };
 
 
