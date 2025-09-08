@@ -1,0 +1,27 @@
+[Unit]
+Description=Aterx P2Pool Daemon
+Documentation=https://github.com/gavinbarnard/p2pooler
+After=network.target redis.service
+
+[Service]
+Type=simple
+User=monero
+Group=monero
+WorkingDirectory=/home/monero/p2pooler/python
+Environment=PYTHONPATH=/home/monero/p2pooler/python
+ExecStart=/home/monero/p2pooler/venv/bin/python3 /home/monero/p2pooler/python/aterxdaemon.py --daemon
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=aterxdaemon
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log /tmp /home/monero/.config
+
+[Install]
+WantedBy=multi-user.target

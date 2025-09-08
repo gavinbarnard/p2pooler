@@ -31,6 +31,7 @@ import json
 import subprocess
 import time
 import glob
+import argparse
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
@@ -42,7 +43,7 @@ import redis
 from math import floor
 
 # Import existing utility modules
-from util.config import cli_options, parse_config
+from util.config import parse_config
 
 
 class Task(ABC):
@@ -483,13 +484,16 @@ class HashrateTask(Task):
 class AterxDaemon:
     """Main daemon class that manages tasks and scheduling"""
     
-    def __init__(self, config_file: Optional[str] = None):
-        self.config_file = config_file or cli_options()
+    def __init__(self, config_file: Optional[str] = None, log_level: str = "INFO", 
+                 task_interval: int = 60, daemon_mode: bool = False):
+        self.config_file = config_file or self._get_default_config_file()
         self.config = parse_config(self.config_file)
+        self.log_level = log_level
+        self.daemon_mode = daemon_mode
         self.logger = self._setup_logging()
         self.tasks: List[Task] = []
         self.running = False
-        self.task_interval = 60  # Run tasks every 60 seconds (like cron)
+        self.task_interval = task_interval  # Run tasks every N seconds
         
         # Initialize tasks
         self._initialize_tasks()
@@ -498,22 +502,44 @@ class AterxDaemon:
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
     
+    def _get_default_config_file(self) -> str:
+        """Get default config file path"""
+        return os.path.join(os.environ['HOME'], '.config', 'p2pooler-py.json')
+    
     def _setup_logging(self) -> logging.Logger:
         """Setup logging configuration"""
         logger = logging.getLogger('aterxdaemon')
-        logger.setLevel(logging.INFO)
+        logger.setLevel(getattr(logging, self.log_level.upper()))
         
-        # Create console handler
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(logging.INFO)
+        # Clear any existing handlers
+        logger.handlers.clear()
         
-        # Create formatter
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
+        if self.daemon_mode:
+            # In daemon mode, log to syslog or file
+            try:
+                from logging.handlers import SysLogHandler
+                handler = SysLogHandler(address='/dev/log')
+                formatter = logging.Formatter(
+                    'aterxdaemon[%(process)d]: %(levelname)s - %(message)s'
+                )
+            except Exception:
+                # Fallback to file logging
+                log_file = '/var/log/aterxdaemon.log'
+                handler = logging.FileHandler(log_file)
+                formatter = logging.Formatter(
+                    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                )
+        else:
+            # Console logging for non-daemon mode
+            handler = logging.StreamHandler(sys.stdout)
+            formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+        
+        handler.setLevel(getattr(logging, self.log_level.upper()))
         handler.setFormatter(formatter)
-        
         logger.addHandler(handler)
+        
         return logger
     
     def _initialize_tasks(self):
@@ -552,6 +578,7 @@ class AterxDaemon:
         """Main daemon loop"""
         self.running = True
         self.logger.info("Aterx daemon starting...")
+        self.logger.info(f"Running {len(self.tasks)} tasks every {self.task_interval} seconds")
         
         while self.running:
             try:
@@ -577,17 +604,121 @@ class AterxDaemon:
         self.logger.info("Aterx daemon stopped")
 
 
+def parse_args():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(
+        description='Aterx daemon - Consolidates cleaner, exporter, and hashrate tasks',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s                                    # Run with default settings
+  %(prog)s --config /path/to/config.json     # Use custom config file
+  %(prog)s --interval 30 --log-level DEBUG   # Run every 30 seconds with debug logging
+  %(prog)s --daemon                          # Run as background daemon
+  %(prog)s --test                            # Test configuration and tasks, then exit
+        """
+    )
+    
+    parser.add_argument(
+        '-c', '--config',
+        default=None,
+        help='Configuration file path (default: ~/.config/p2pooler-py.json)'
+    )
+    
+    parser.add_argument(
+        '-i', '--interval',
+        type=int,
+        default=60,
+        help='Task execution interval in seconds (default: 60)'
+    )
+    
+    parser.add_argument(
+        '-l', '--log-level',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
+        default='INFO',
+        help='Logging level (default: INFO)'
+    )
+    
+    parser.add_argument(
+        '-d', '--daemon',
+        action='store_true',
+        help='Run as background daemon'
+    )
+    
+    parser.add_argument(
+        '-t', '--test',
+        action='store_true',
+        help='Test configuration and run one cycle of tasks, then exit'
+    )
+    
+    parser.add_argument(
+        '--disable-cleaner',
+        action='store_true',
+        help='Disable the cleaner task'
+    )
+    
+    parser.add_argument(
+        '--disable-exporter',
+        action='store_true',
+        help='Disable the exporter task'
+    )
+    
+    parser.add_argument(
+        '--disable-hashrate',
+        action='store_true',
+        help='Disable the hashrate task'
+    )
+    
+    return parser.parse_args()
+
+
 async def main():
     """Main entry point"""
-    daemon = AterxDaemon()
-    await daemon.run()
-
-
-if __name__ == "__main__":
+    args = parse_args()
+    
     try:
-        asyncio.run(main())
+        daemon = AterxDaemon(
+            config_file=args.config,
+            log_level=args.log_level,
+            task_interval=args.interval,
+            daemon_mode=args.daemon
+        )
+        
+        # Disable tasks based on command line args
+        if args.disable_cleaner:
+            for task in daemon.tasks:
+                if task.name == 'cleaner':
+                    task.disable()
+                    daemon.logger.info("Cleaner task disabled")
+        
+        if args.disable_exporter:
+            for task in daemon.tasks:
+                if task.name == 'exporter':
+                    task.disable()
+                    daemon.logger.info("Exporter task disabled")
+        
+        if args.disable_hashrate:
+            for task in daemon.tasks:
+                if task.name == 'hashrate':
+                    task.disable()
+                    daemon.logger.info("Hashrate task disabled")
+        
+        if args.test:
+            # Test mode - run one cycle and exit
+            daemon.logger.info("Running in test mode...")
+            await daemon._run_tasks()
+            daemon.logger.info("Test completed successfully")
+            return
+        
+        # Run the daemon
+        await daemon.run()
+        
     except KeyboardInterrupt:
-        print("\nShutdown requested by user")
+        print("Daemon interrupted by user")
     except Exception as e:
         print(f"Fatal error: {e}")
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
