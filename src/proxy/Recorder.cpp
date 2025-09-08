@@ -63,8 +63,12 @@ xmrig::Recorder::Recorder(Controller *controller) :
 }
 
 
-xmrig::Recorder::~Recorder() = default;
-
+xmrig::Recorder::~Recorder() {
+    if (rdCtx) {
+        redisFree(rdCtx);
+        rdCtx = nullptr;
+    }
+}
 
 void xmrig::Recorder::onEvent(IEvent *event)
 {
