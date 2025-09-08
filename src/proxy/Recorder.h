@@ -29,6 +29,8 @@
 
 #include "base/tools/Object.h"
 #include "proxy/interfaces/IEventListener.h"
+#include <hiredis/hiredis.h>
+#include <cinttypes>
 
 namespace xmrig {
 
@@ -52,9 +54,11 @@ protected:
 private:
     void accept(const AcceptEvent *event);
     void reject(const AcceptEvent *event);
-
+    bool validateAddress(const char* s);
+    void add_share_to_redis(const char *user, const u_int64_t ts, const u_int64_t diff);
     Controller *m_controller;
-    int sockfd;
+    //int sockfd;
+    redisContext *rdCtx;
 };
 
 

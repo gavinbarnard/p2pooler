@@ -32,6 +32,7 @@
 #include "proxy/events/AcceptEvent.h"
 #include "proxy/Miner.h"
 #include "base/tools/Chrono.h"
+#include <hiredis/hiredis.h>
 
 #include <cinttypes>
 
@@ -40,14 +41,25 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <cstring>
+#include <string>
 
 xmrig::Recorder::Recorder(Controller *controller) :
     m_controller(controller)
 {
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockfd < 0) {
-        LOG_ERR("sockfd less than 0 %d", sockfd);
-    } 
+    //sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    //if (sockfd < 0) {
+    //    LOG_ERR("sockfd less than 0 %d", sockfd);
+    //}
+    rdCtx = redisConnect("localhost", 6379);  // FIX ME should load this connection info from ~/.config/p2pooler-py.json 
+    if (rdCtx == NULL || rdCtx->err) {
+        if (rdCtx) {
+            LOG_ERR("Redis connection error: %s",  rdCtx->errstr);
+            redisFree(rdCtx);
+        } else {
+            LOG_ERR("Redis connection error: Can't allocate redis context.");
+        }
+    }
 }
 
 
@@ -81,16 +93,145 @@ void xmrig::Recorder::onRejectedEvent(IEvent *event)
     }
 }
 
+bool xmrig::Recorder::validateAddress(const char *s)
+{
+    // Check for null pointer
+    if (s == nullptr) 
+    {
+        return false;
+    }
+    
+    // Determine string length
+    size_t len = strlen(s);
+    
+    // Check length requirement (must be exactly 95 characters)
+    if (len != 95) 
+    {
+        return false;
+    }
+    
+    // Check first character is '4' or '8'
+    char first_char = s[0];
+    if (first_char != '4' && first_char != '8') 
+    {
+        return false;
+    }
+    
+    // Define allowed Base58 characters
+    const std::string allowed_chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    
+    // Precompute an array for O(1) character lookups
+    bool allowed[256] = {false};
+    for (char c : allowed_chars) {
+        allowed[static_cast<unsigned char>(c)] = true;
+    }
+    
+    // Validate each character in the input string
+    for (size_t i = 0; i < len; ++i) {
+        char current_char = s[i];
+        if (!allowed[static_cast<unsigned char>(current_char)]) return false;
+    }
+    // All checks passed
+    return true;
+}
+
+void xmrig::Recorder::add_share_to_redis(const char *user, const u_int64_t ts, const u_int64_t diff) 
+{
+    char share_key[1024];
+    char json_str[512];
+    redisReply *reply;
+    redisReply *reply_set;
+    snprintf(share_key, sizeof(share_key), "s_%s", user);
+    snprintf(json_str, sizeof(json_str), "{\"timestamp\":%lu,\"diff\":%lu}", ts, diff);
+    const char* JSON_ARRAPPEND = "JSON.ARRAPPEND";
+    const char* JSON_SET = "JSON.SET";
+    const char* argv_arrappend[] = {JSON_ARRAPPEND, share_key, "$", json_str};
+    const char* argv_set[] = {JSON_SET, share_key, "$", "[]"};
+    int argc_arrappend = 4;
+    int argc_set = 4;
+    const size_t argv_arrappen_len[] = {strlen(JSON_ARRAPPEND), strlen(share_key), 1, strlen(json_str)};
+    const size_t argv_set_len[] = {strlen(JSON_SET), strlen(share_key), 1, 2};
+    reply = (redisReply *) redisCommandArgv(rdCtx, argc_arrappend, argv_arrappend, argv_arrappen_len);
+    if (reply == NULL)
+    {
+        LOG_ERR("redis Connection error");
+    } 
+    else if (reply->type == REDIS_REPLY_ERROR) 
+    {
+        LOG_ERR("Potential Reply error");
+        const char* errMsg = reply->str;
+        if (strstr(errMsg, "could not perform this operation on a key that doesn't exist")) 
+        {
+            reply_set = (redisReply *) redisCommandArgv(rdCtx, argc_set, argv_set, argv_set_len);
+            if (reply_set == NULL) {
+                LOG_ERR("Failed to set NULL");
+            } 
+            else if (reply_set->type != REDIS_REPLY_STATUS)
+            {
+                LOG_ERR("Failed to set");
+            }
+            freeReplyObject(reply_set);
+            reply = (redisReply *) redisCommandArgv(rdCtx, argc_arrappend, argv_arrappend, argv_arrappen_len);
+            if (reply == NULL)
+            {
+                LOG_ERR("Failed to append after set NULL");
+            } 
+            else if (reply->type == REDIS_REPLY_ARRAY)
+            {
+                LOG_ERR("Correctly appended after set");
+            } 
+            else 
+            {
+                LOG_ERR("Failed to append after set");
+            }
+        }
+    } else if (reply->type == REDIS_REPLY_ARRAY) {
+        LOG_PPLNS("share added user=%s, ts=%" PRIu64", diff=%" PRIu64, user, ts, diff);
+    } else {
+        LOG_ERR("share failed user=%s, ts=%" PRIu64", diff=%" PRIu64, user, ts, diff);
+    }
+}
 
 void xmrig::Recorder::accept(const AcceptEvent *event)
 {
     if (event->isDonate() || event->isCustomDiff()) {
         return;
     }
-    const char* user = event->miner()->user();
+    const char* og_user = event->miner()->user();
     const u_int64_t timestamp = Chrono::currentMSecsSinceEpoch();
     const u_int64_t diff = event->result.diff;
     //LOG_PPLNS("user=%s,ts=%" PRIu64",diff=%" PRIu64, (char*)user, timestamp, diff);
+    char buffer_user[1024] = {0x0};
+    char final_user[1024] = {0x0};
+    std::strcpy(buffer_user, og_user);
+    char* plusPos = std::strchr(buffer_user, '+');
+    if (plusPos != nullptr) 
+    {
+        *plusPos = '\0';
+    }
+    std::strcpy(final_user, buffer_user);
+    if (validateAddress(final_user))
+    {
+        add_share_to_redis(final_user, timestamp, diff);
+    }
+    /*
+    REDIS COMMANDS
+    
+    JSON.ARRAPPEND key path value
+
+    JSON.ARRAPPEND s_{user} $ 'json_string'
+    
+    JSON.SET key path value
+
+    JSON.SET s_{user} $ '[]'
+
+    */
+
+
+
+    /* Original code to send to receiver.py */
+    /*
+    
     struct hostent *server;
     int portno = 6969;
     struct sockaddr_in serv_addr;
@@ -107,6 +248,9 @@ void xmrig::Recorder::accept(const AcceptEvent *event)
         sprintf(message,"{\"user\":\"%s\",\"ts\": %" PRIu64", \"diff\": %" PRIu64"}", (char*)user, timestamp, diff);
         sendto(sockfd, message, strlen(message), 0, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
     }
+    
+    */
+
 }
 
 void xmrig::Recorder::reject(const AcceptEvent *event)

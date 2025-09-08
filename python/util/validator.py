@@ -34,8 +34,10 @@ def validate_address(test_address):
 if __name__ == "__main__":
     print("running test")
     assert validate_address("41jyth3Xv8vJPTRBPNXfLJ29jo2do8aC2CPXXeCNHCFRjjNhZ1GB2HETntXWAJqgr2Y9my5XTanKKWFzRZG8scX13AUNYWq") == True
+    assert validate_address("872QqUbTSbzAVTKj1XZVLx3qcZwgWuLAkSGH1idZ72558p3Gt3P1rf9ZJz2J1hKe3dEWiTtGzDNr8X9zSmC91XmYMFTzbLg") == True
     assert validate_address("donkey_balls") == False
     assert validate_address(None) == False
     assert is_integrated("4GdoN7NCTi8a5gZug7PrwZNKjvHFmKeV11L6pNJPgj5QNEHsN6eeX3DaAQFwZ1ufD4LYCZKArktt113W7QjWvQ7CW86FNFap1nBMHne6V2") == True
     assert is_integrated("41jyth3Xv8vJPTRBPNXfLJ29jo2do8aC2CPXXeCNHCFRjjNhZ1GB2HETntXWAJqgr2Y9my5XTanKKWFzRZG8scX13AUNYWq") == False
+    assert is_integrated("872QqUbTSbzAVTKj1XZVLx3qcZwgWuLAkSGH1idZ72558p3Gt3P1rf9ZJz2J1hKe3dEWiTtGzDNr8X9zSmC91XmYMFTzbLg") == False
     print("finish tests without assertion")

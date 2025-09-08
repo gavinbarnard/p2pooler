@@ -148,7 +148,7 @@ def json_stats_response(wallet=None):
             else:
                 miner_hr = 0
             worker_count = len(miners[wallet]['rigs'])
-            miner_share = get_shares(wallet)
+        miner_share = get_shares(wallet)
         
     stat_array = {
         "pool_hashrate": p2local['hashrate_15m'],
