@@ -44,6 +44,7 @@ from math import floor
 
 # Import existing utility modules
 from util.config import parse_config
+from util.rpc import wallet_get_transfers_in
 
 
 class Task(ABC):
@@ -168,7 +169,7 @@ class CleanerTask(Task):
                 
                 if count != 0:
                     self.logger.info(f"{count} blocks found that need to be split")
-                    # Note: reward_splitter.py is commented out in original script
+                    # Note: reward_splitter functionality is implemented but disabled by default
                     # Uncomment the next line to enable reward splitting
                     # await self._run_reward_splitter()
                 else:
@@ -180,10 +181,136 @@ class CleanerTask(Task):
             self.logger.error(f"Unexpected error in reward handling: {e}")
     
     async def _run_reward_splitter(self):
-        """Run reward splitter functionality (currently disabled)"""
-        # This would implement the reward_splitter.py functionality
-        # Left as placeholder for future implementation
-        pass
+        """Run reward splitter functionality"""
+        try:
+            self.logger.info("Starting reward splitter")
+            
+            # Get incoming transfers from wallet RPC
+            wallet_rpc_port = self.config.get('wallet_rpc')
+            if not wallet_rpc_port:
+                self.logger.error("wallet_rpc not configured, cannot run reward splitter")
+                return
+            
+            in_tx = wallet_get_transfers_in(wallet_rpc_port)
+            skeys = self.redis_client.keys("s_*")
+            superman_three_total = 0
+            
+            for tx in in_tx:
+                if tx['type'] == "block" and not tx['locked']:
+                    self.logger.info(f"Processing block - Height: {tx['height']}, timestamp: {tx['timestamp']}, reward: {tx['amount']}")
+                    
+                    block_key = f"B_{tx['height']}"
+                    self.logger.debug(f"Block key: {block_key}")
+                    
+                    # Check if block is already processed
+                    block = self.redis_client.json().get(block_key)
+                    
+                    if not block:
+                        # Block not processed yet, calculate rewards
+                        ts_cmp = tx['timestamp'] * 1000
+                        all_value = 0
+                        all_value_dict = {}
+                        
+                        # Calculate share values for each miner
+                        for key in skeys:
+                            total_value = 0
+                            shares = self.redis_client.json().get(key)
+                            notified = [0, 0, 0, 0, 0, 0]
+                            
+                            if shares:
+                                for share in shares:
+                                    tdiff = ts_cmp - share['timestamp']
+                                    # Include shares within ~6 hours (2.16e7 ms) before block
+                                    if share['timestamp'] < ts_cmp and tdiff < 2.16e7:
+                                        total_value += share['diff']
+                                    
+                                    # Log hourly notifications
+                                    for i in range(6):
+                                        if notified[i] == 0:
+                                            if tdiff > 3.6e6 * i and tdiff < 3.6e6 * (i+1):
+                                                notified[i] = 1
+                                                self.logger.debug(f"Found shares in {i} hour for {key}")
+                            
+                            all_value += total_value
+                            all_value_dict[str(key[2:], 'utf-8')] = total_value
+                        
+                        # Calculate reward allocations
+                        all_reward = 0
+                        all_reward_dict = {}
+                        
+                        if all_value > 0:
+                            for key in all_value_dict.keys():
+                                percent = all_value_dict[key] / all_value
+                                reward = floor(percent * tx['amount'])
+                                all_reward_dict[key] = reward
+                                self.logger.debug(f"{key} cumulative share diff is {all_value_dict[key]} and is worth {round(percent, 2)} and will get reward {reward}")
+                                all_reward += reward
+                        
+                        self.logger.info(f"Cumulative total diff: {all_value}")
+                        
+                        # Handle reward validation
+                        if all_reward > tx['amount']:
+                            self.logger.error("Over reward detected - check calculations")
+                            raise ValueError("Over reward")
+                        elif all_reward < tx['amount']:
+                            superman_three = tx['amount'] - all_reward
+                            superman_three_total += superman_three
+                            self.logger.info(f"Under reward due to floor() operation: {superman_three}")
+                        elif all_reward == tx['amount']:
+                            self.logger.info("Perfect reward allocation")
+                        
+                        # Update individual balances
+                        for key in all_reward_dict.keys():
+                            new_key = f"b_{key}"
+                            cur_value = self.redis_client.get(new_key)
+                            
+                            if cur_value:
+                                cur_value = int(cur_value)
+                                n_value = cur_value + all_reward_dict[key]
+                                self.redis_client.set(new_key, n_value)
+                                self.logger.debug(f"Updated balance: prior {cur_value} + reward {all_reward_dict[key]} = {n_value} for {new_key}")
+                            else:
+                                self.redis_client.set(new_key, all_reward_dict[key])
+                                self.logger.debug(f"New balance: reward {all_reward_dict[key]} for {new_key}")
+                        
+                        # Store block allocation data
+                        all_reward_dict['timestamp'] = int(time.time() * 1000)
+                        resp = self.redis_client.json().set(block_key, "$", all_reward_dict)
+                        
+                        if resp:
+                            self.logger.info(f"Stored block payout data for block {tx['height']}")
+                        else:
+                            self.logger.error(f"Failed to store block payout data for block {tx['height']}")
+                    
+                    else:
+                        # Block already processed
+                        self.logger.info(f"Block {tx['height']} already processed")
+                        reward = 0
+                        
+                        if "timestamp" in block.keys():
+                            self.logger.debug(f"Block timestamp: {block['timestamp']}")
+                        
+                        for payee in block.keys():
+                            if payee != "timestamp":
+                                self.logger.debug(f"{payee} allocated {block[payee]}")
+                                reward += block[payee]
+                        
+                        self.logger.debug(f"Total reward: {reward}, Block amount: {tx['amount']}")
+                        
+                        if reward > tx['amount']:
+                            self.logger.error("Over reward recorded!")
+                        elif reward < tx['amount']:
+                            superman_three = tx['amount'] - reward
+                            superman_three_total += superman_three
+                            self.logger.info(f"Under reward due to floor operation: {superman_three}")
+                        elif reward == tx['amount']:
+                            self.logger.info("Perfect reward allocation")
+            
+            self.logger.info(f"Superman three total: {superman_three_total}")
+            self.logger.info("Reward splitter completed successfully")
+            
+        except Exception as e:
+            self.logger.error(f"Error in reward splitter: {e}")
     
     def _fmt_memory(self, memory):
         """Format memory size for display"""
