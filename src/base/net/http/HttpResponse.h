@@ -23,6 +23,7 @@
 
 #include <map>
 #include <string>
+#include <cstdint>
 
 
 namespace xmrig {

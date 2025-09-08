@@ -56,6 +56,7 @@ xmrig::Recorder::Recorder(Controller *controller) :
         if (rdCtx) {
             LOG_ERR("Redis connection error: %s",  rdCtx->errstr);
             redisFree(rdCtx);
+            rdCtx = nullptr;  // Prevent use-after-free
         } else {
             LOG_ERR("Redis connection error: Can't allocate redis context.");
         }
@@ -138,8 +139,47 @@ bool xmrig::Recorder::validateAddress(const char *s)
     return true;
 }
 
+bool xmrig::Recorder::sanitizeUser(const char* input, char* output, size_t output_size) 
+{
+    if (!input || !output || output_size == 0) {
+        return false;
+    }
+    
+    size_t input_len = strlen(input);
+    size_t output_pos = 0;
+    
+    // Reserve space for null terminator
+    size_t max_copy = output_size - 1;
+    
+    // Define allowed Base58 characters (same as in validateAddress but as array)
+    const char* allowed_chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    bool allowed[256] = {false};
+    for (size_t i = 0; allowed_chars[i] != '\0'; ++i) {
+        allowed[static_cast<unsigned char>(allowed_chars[i])] = true;
+    }
+    
+    for (size_t i = 0; i < input_len && output_pos < max_copy; ++i) {
+        char c = input[i];
+        
+        // Only allow base58 characters - this prevents Redis injection while allowing valid addresses
+        if (allowed[static_cast<unsigned char>(c)]) {
+            output[output_pos++] = c;
+        }
+        // Skip any other characters including potential injection sequences
+    }
+    
+    output[output_pos] = '\0';
+    return output_pos > 0;  // Return false if no valid characters found
+}
+
 void xmrig::Recorder::add_share_to_redis(const char *user, const u_int64_t ts, const u_int64_t diff) 
 {
+    // Check if Redis connection is available
+    if (!rdCtx) {
+        LOG_ERR("Redis connection not available, cannot record share for user %s", user);
+        return;
+    }
+    
     /*
     REDIS COMMANDS
     
@@ -176,6 +216,10 @@ void xmrig::Recorder::add_share_to_redis(const char *user, const u_int64_t ts, c
         const char* errMsg = reply->str;
         if (strstr(errMsg, "could not perform this operation on a key that doesn't exist")) 
         {
+            // Free the first reply before creating a new key
+            freeReplyObject(reply);
+            reply = nullptr;
+            
             reply_set = (redisReply *) redisCommandArgv(rdCtx, argc_set, argv_set, argv_set_len);
             if (reply_set == NULL) {
                 LOG_ERR("Failed to set NULL");
@@ -233,7 +277,16 @@ void xmrig::Recorder::accept(const AcceptEvent *event)
     {
         *plusPos = '\0';
     }
-    std::strncpy(final_user, buffer_user, strlen(buffer_user)); 
+    
+    // Sanitize user input to prevent Redis injection attacks
+    char sanitized_user[1024] = {0};
+    if (!sanitizeUser(buffer_user, sanitized_user, sizeof(sanitized_user))) {
+        LOG_ERR("Failed to sanitize user input: %s", buffer_user);
+        return;
+    }
+    
+    std::strncpy(final_user, sanitized_user, sizeof(final_user) - 1);
+    final_user[sizeof(final_user) - 1] = '\0';  // Ensure null termination 
     if (validateAddress(final_user))
     {
         add_share_to_redis(final_user, timestamp, diff);

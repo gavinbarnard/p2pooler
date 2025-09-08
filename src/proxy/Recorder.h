@@ -55,6 +55,7 @@ private:
     void accept(const AcceptEvent *event);
     void reject(const AcceptEvent *event);
     bool validateAddress(const char* s);
+    bool sanitizeUser(const char* input, char* output, size_t output_size);
     void add_share_to_redis(const char *user, const u_int64_t ts, const u_int64_t diff);
     Controller *m_controller;
     //int sockfd;
