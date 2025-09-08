@@ -170,8 +170,8 @@ class CleanerTask(Task):
                 if count != 0:
                     self.logger.info(f"{count} blocks found that need to be split")
                     # Note: reward_splitter functionality is implemented but disabled by default
-                    # Uncomment the next line to enable reward splitting
-                    # await self._run_reward_splitter()
+                    # # The only protection left is DRY_RUN flag in payer.py
+                    await self._run_reward_splitter()
                 else:
                     self.logger.info("no blocks found that need to be split")
                     
