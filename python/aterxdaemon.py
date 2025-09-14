@@ -101,6 +101,9 @@ class CleanerTask(Task):
             total_rmem_post_clean = 0
             
             resp = self.redis_client.keys("s_*")
+            if len(resp) == 0:
+                self.logger.debug("no shares to clean")
+                return
             for key in resp:
                 s_count = self.redis_client.json().arrlen(key)
                 memory = self.redis_client.json().debug("MEMORY", key)
