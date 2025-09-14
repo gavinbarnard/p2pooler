@@ -559,14 +559,31 @@ class HashrateTask(Task):
                 3600: 0, 7200: 0, 21600: 0, 64800: 0
             }
             
+            # First pass: calculate total difficulty sum for all users in last 6 hours
+            total_6h_difficulty = self._calculate_total_6h_difficulty(keys, start)
+            
+            # Get current P2Pool estimated reward for calculation
+            current_p2pool_reward = self._get_current_p2pool_reward()
+            
             for key in keys:
                 userkey = str(key[2:], 'utf-8')
                 shares = self._get_shares(userkey)
                 if shares:
                     overall_hr = self._determine_hr(shares, start)
+                    
+                    # Calculate user's estimated reward allocation
+                    user_6h_difficulty = self._calculate_user_6h_difficulty(shares, start)
+                    user_est_reward = self._calculate_user_estimated_reward(
+                        user_6h_difficulty, total_6h_difficulty, current_p2pool_reward
+                    )
+                    
+                    # Add estimated reward to the hashrate record
+                    overall_hr['est_reward'] = user_est_reward
+                    
                     self.redis_client.json().set(f"h_{userkey}", ".", overall_hr)
                     for k in overall_hr.keys():
-                        super_overall_hr[k] += overall_hr[k]
+                        if k != 'est_reward':  # Don't add est_reward to super totals
+                            super_overall_hr[k] += overall_hr[k]
             
             # Clean up hashrate keys for users with no shares
             h_keys = self.redis_client.keys("h_*")
@@ -609,6 +626,69 @@ class HashrateTask(Task):
             hr[k] = floor(buckets[k] / k)
         
         return hr
+    
+    def _calculate_total_6h_difficulty(self, keys, start_time):
+        """Calculate total difficulty sum of all users' shares in last 6 hours"""
+        total_difficulty = 0
+        six_hours_ms = 6 * 60 * 60 * 1000  # 6 hours in milliseconds
+        
+        for key in keys:
+            userkey = str(key[2:], 'utf-8')
+            shares = self._get_shares(userkey)
+            if shares:
+                user_difficulty = self._calculate_user_6h_difficulty(shares, start_time)
+                total_difficulty += user_difficulty
+        
+        return total_difficulty
+    
+    def _calculate_user_6h_difficulty(self, shares, start_time):
+        """Calculate user's difficulty sum for shares in last 6 hours"""
+        user_difficulty = 0
+        six_hours_ms = 6 * 60 * 60 * 1000  # 6 hours in milliseconds
+        
+        for share in shares:
+            tdiff = start_time - share['timestamp']
+            # Include shares within last 6 hours
+            if tdiff < six_hours_ms:
+                user_difficulty += share['diff']
+        
+        return user_difficulty
+    
+    def _get_current_p2pool_reward(self):
+        """Get current P2Pool estimated reward from stats"""
+        try:
+            # Import the stats functions
+            from util.p2pool_stats import get_stat
+            from util.config import parse_config, cli_options
+            
+            # Get config to access P2Pool stats
+            config_items = parse_config(cli_options())
+            
+            # Get P2Pool stats similar to how app.py does it
+            p2local = get_stat(config_items['p2pool_stats'], "local")
+            p2network = get_stat(config_items['p2pool_stats'], "network")
+            
+            # Calculate estimated reward (convert from atomic units to XMR)
+            est_reward = round(p2network['reward'] * (p2local['block_reward_share_percent']/100) / 1e12, 12)
+            
+            return est_reward
+            
+        except Exception as e:
+            self.logger.warning(f"Could not get P2Pool reward estimate: {e}")
+            return 0.0
+    
+    def _calculate_user_estimated_reward(self, user_6h_difficulty, total_6h_difficulty, p2pool_reward):
+        """Calculate user's estimated reward allocation"""
+        if total_6h_difficulty == 0:
+            return 0.0
+        
+        # Calculate user's share percentage
+        user_share_percentage = user_6h_difficulty / total_6h_difficulty
+        
+        # Calculate estimated reward allocation
+        user_estimated_reward = user_share_percentage * p2pool_reward
+        
+        return round(user_estimated_reward, 12)
 
 
 class AterxDaemon:
