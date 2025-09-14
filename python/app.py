@@ -130,6 +130,7 @@ def json_stats_response(wallet=None):
     miner_bal = 0
     worker_count = 0
     miner_share = 0
+    miner_est_reward = 0.0
     connected_miners = len(get_miners(config_items['p2pooler_rpc'], config_items['p2pooler_token']))
     bal = r.get("b_{}".format(wallet))
     if bal:
@@ -145,6 +146,9 @@ def json_stats_response(wallet=None):
             hr = get_hr_wallet2(wallet)
             if hr:
                 miner_hr = hr['300']
+                # Get estimated reward if available
+                if 'est_reward' in hr:
+                    miner_est_reward = hr['est_reward']
             else:
                 miner_hr = 0
             worker_count = len(miners[wallet]['rigs'])
@@ -173,6 +177,7 @@ def json_stats_response(wallet=None):
         "miner_hashrate": miner_hr,
         "miner_balance": miner_bal,
         "miner_share": miner_share,
+        "miner_est_reward": miner_est_reward,
         "worker_count": worker_count,
         "integrated": integrated
     }
